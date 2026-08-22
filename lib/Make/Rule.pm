@@ -109,8 +109,7 @@ sub Print {
         foreach my $file (@cmd) {
             print "\t", $file, "\n";
         }
-    }
-    else {
+    } else {
         print STDERR "No recipe for ", $target->Name, "\n" unless ( $self->target->phony );
     }
     print "\n";

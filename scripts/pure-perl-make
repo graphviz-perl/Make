@@ -30,14 +30,11 @@ $info->parse($opt{f});
 if ( $opt{D} ) {
     require Data::Dumper;
     print Data::Dumper::DumperX($info);
-}
-elsif ( $opt{p} ) {
+} elsif ( $opt{p} ) {
     $info->Print(@ARGV);
-}
-elsif ( $opt{n} ) {
+} elsif ( $opt{n} ) {
     print $info->Script(@ARGV);
-}
-elsif ( $redundancy ) {
+} elsif ( $redundancy ) {
     my $g = $info->as_graph(no_rules => 1);
     my $tcg = $g->transitive_closure(path_count => 1);
     ## no critic (BuiltinFunctions::RequireBlockGrep BuiltinFunctions::RequireBlockMap)
@@ -70,8 +67,7 @@ elsif ( $redundancy ) {
         }
     }
     ## use critic
-}
-else {
+} else {
     $info->Make(@ARGV);
 }
 

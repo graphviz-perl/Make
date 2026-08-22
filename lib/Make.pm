@@ -72,8 +72,7 @@ sub target {
         my $t = $self->{Depend}{$target} = Make::Target->new( $target, $self );
         if ( $target =~ /%/ ) {
             $self->{Pattern}{$target} = $t;
-        }
-        elsif ( $target =~ /^\./ ) {
+        } elsif ( $target =~ /^\./ ) {
             $self->{Dot}{$target} = $t;
         }
     }
@@ -222,8 +221,7 @@ sub evaluate_macro {
             die "Syntax error: expected form x=y in '$subst'" if @parts != 2;
             $value = join ' ', Make::Functions::patsubst( $fsmap, @parts, $value );
         }
-    }
-    elsif ( $key =~ /([\w._]+)\s+(.*)$/ ) {
+    } elsif ( $key =~ /([\w._]+)\s+(.*)$/ ) {
         my ( $func, $args ) = ( $1, $2 );
         my $code;
         foreach my $package (@$function_packages) {
@@ -233,8 +231,7 @@ sub evaluate_macro {
         ## no critic (BuiltinFunctions::RequireBlockMap)
         $value = join ' ', $code->( $fsmap, map subsvars( $_, @args ), split /\s*,\s*/, $args );
         ## use critic
-    }
-    elsif ( $key =~ /^\S*\$/ ) {
+    } elsif ( $key =~ /^\S*\$/ ) {
 
         # something clever, expand it
         $key = subsvars( $key, @args );
@@ -256,14 +253,12 @@ sub subsvars {
             $ret .= $char;    # literal $
             substr $remaining, 0, 1, '';
             next;
-        }
-        elsif ( $char =~ /[\{\(]/ ) {
+        } elsif ( $char =~ /[\{\(]/ ) {
             ( $found, my $tail ) = extract_bracketed $remaining, '{}()', '';
             die "Syntax error in '$remaining'" if !defined $found;
             $found     = substr $found, 1, -1;
             $remaining = $tail;
-        }
-        else {
+        } else {
             $found = substr $remaining, 0, 1, '';
         }
         my $value = evaluate_macro( $found, $function_packages, $vars_search_list, $fsmap );
@@ -353,15 +348,12 @@ sub process_ast_bit {
                 1;
             } or warn $@ if $opt ne '-';
         }
-    }
-    elsif ( $type eq 'var' ) {
+    } elsif ( $type eq 'var' ) {
         $self->set_var( $args[0], defined $args[1] ? $args[1] : "" );
-    }
-    elsif ( $type eq 'vpath' ) {
+    } elsif ( $type eq 'vpath' ) {
         my ( $pattern, @vpath ) = @args;
         $self->{Vpath}{$pattern} = \@vpath;
-    }
-    elsif ( $type eq 'rule' ) {
+    } elsif ( $type eq 'rule' ) {
         my ( $targets, $kind, $prereqs, $cmnds, $cmnds_raw ) = @args;
         ($prereqs) = tokenize( $self->expand($prereqs) );
         ($targets) = tokenize( $self->expand($targets) );
@@ -391,19 +383,15 @@ sub parse_makefile {
         next if !length;
         if (/^(-?)include\s+(.*)$/) {
             push @ast, [ 'include', $1, $2 ];
-        }
-        elsif (s/^#+\s*//) {
+        } elsif (s/^#+\s*//) {
             push @ast, [ 'comment', $_ ];
-        }
-        elsif (/^\s*([\w._]+)\s*:?=\s*(.*)$/) {
+        } elsif (/^\s*([\w._]+)\s*:?=\s*(.*)$/) {
             push @ast, [ 'var', $1, $2 ];
-        }
-        elsif (/^vpath\s+(\S+)\s+([^#]*)/) {
+        } elsif (/^vpath\s+(\S+)\s+([^#]*)/) {
             my ( $pattern, $path ) = ( $1, $2 );
             my @path = @{ tokenize $path, $Config{path_sep} };
             push @ast, [ 'vpath', $pattern, @path ];
-        }
-        elsif (
+        } elsif (
             /^
                 \s*
                 ([^:\#]*?)
@@ -430,8 +418,7 @@ sub parse_makefile {
             }
             push @ast, [ 'rule', $target, $kind, $prereqs, \@cmnds, \@cmnds_raw ];
             redo;
-        }
-        else {
+        } else {
             warn "Ignore '$_'\n";
         }
     }
@@ -483,8 +470,7 @@ sub parse {
     if ( ref $file eq 'SCALAR' ) {
         open my $tfh, "+<", $file;
         $fh = $tfh;
-    }
-    else {
+    } else {
         $file = $self->find_makefile($file);
         $fh   = $self->fsmap->{fh_open}->( '<', $file );
     }
@@ -571,8 +557,7 @@ sub parse_args {
     foreach (@_) {
         if (/^(\w+)=(.*)$/) {
             push @vars, [ $1, $2 ];
-        }
-        else {
+        } else {
             push @targets, $_;
         }
     }
@@ -637,8 +622,7 @@ sub as_graph {
             my $from_id;
             if ($no_rules) {
                 $from_id = $node_name;
-            }
-            else {
+            } else {
                 $from_id = $recipe_cache{$recipe}
                     || ( $recipe_cache{$recipe} = name_encode( [ 'rule', $target, $rule_no ] ) );
                 $g->set_vertex_attributes( $from_id, $recipe_hash );
@@ -652,8 +636,7 @@ sub as_graph {
                 if ($no_rules) {
                     my @edge = ( $from_id, $dep_node, $rule_no );
                     $g->set_edge_attributes_by_id( @edge, $recipe_hash );
-                }
-                else {
+                } else {
                     $g->add_edge( $from_id, $dep_node );
                 }
             }
@@ -685,8 +668,7 @@ sub as_graph {
                     ## no critic (BuiltinFunctions::RequireBlockMap)
                     $g->add_edge( $from, $_ ) for map "$dir/$_", @$targets;
                     ## use critic
-                }
-                else {
+                } else {
                     ## no critic (BuiltinFunctions::RequireBlockMap)
                     $g->set_edge_attribute( $from, $_, fromline => $line )
                         for map name_encode( [ 'target', "$dir/$_" ] ), @$targets;
