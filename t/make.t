@@ -251,9 +251,7 @@ sub make_fsmap {
             my @results;
             for my $subpat ( split /\s+/, $_[0] ) {
                 $subpat =~ s/\*/.*/g;    # ignore ?, [], {} for now
-                ## no critic (BuiltinFunctions::RequireBlockGrep)
                 push @results, grep /^$subpat$/, sort keys %vfs_copy;
-                ## use critic
             }
             return @results;
         },

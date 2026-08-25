@@ -15,9 +15,7 @@ use File::Temp;
 use Text::Balanced qw(extract_bracketed);
 use Text::ParseWords qw(parse_line);
 use File::Spec::Functions qw(file_name_is_absolute);
-## no critic (ValuesAndExpressions::ProhibitConstantPragma)
 use constant DEBUG => $ENV{MAKE_DEBUG};
-## use critic
 require Make::Functions;
 
 my $DEFAULTS_AST;
@@ -43,14 +41,11 @@ sub _find_recmake_cd {
     return ( $dir, $makefile, $vars, $targets );
 }
 
-## no critic (Subroutines::RequireArgUnpacking Subroutines::RequireFinalReturn)
 sub load_modules {
     for (@_) {
         my $pkg = $_;    # to not mutate inputs
         $pkg =~ s#::#/#g;
-        ## no critic (Modules::RequireBarewordIncludes)
         eval { require "$pkg.pm"; 1 } or die;
-        ## use critic
     }
 }
 
@@ -61,9 +56,7 @@ sub phony {
 
 sub suffixes {
     my ($self) = @_;
-    ## no critic (Subroutines::ProhibitReturnSort)
     return sort keys %{ $self->{'SUFFIXES'} };
-    ## use critic
 }
 
 sub target {
@@ -87,9 +80,7 @@ sub has_target {
 
 sub targets {
     my ($self) = @_;
-    ## no critic ( BuiltinFunctions::RequireBlockGrep )
     return grep !/%|^\./, keys %{ $self->{Depend} };
-    ## use critic
 }
 
 # Utility routine for patching %.o type 'patterns'
@@ -98,10 +89,8 @@ my %pattern_cache;
 sub patmatch {
     my ( $pat, $target ) = @_;
     return $target if $pat eq '%';
-    ## no critic (BuiltinFunctions::RequireBlockMap)
     $pattern_cache{$pat} = join '(.*)', map quotemeta, split /%/, $pat
         if !exists $pattern_cache{$pat};
-    ## use critic
     $pat = $pattern_cache{$pat};
     if ( $target =~ /^$pat$/ ) {
         return $1;
@@ -228,9 +217,7 @@ sub evaluate_macro {
             last if $code = $package->can($func);
         }
         die "'$func' not found in (@$function_packages)" if !defined $code;
-        ## no critic (BuiltinFunctions::RequireBlockMap)
         $value = join ' ', $code->( $fsmap, map subsvars( $_, @args ), split /\s*,\s*/, $args );
-        ## use critic
     } elsif ( $key =~ /^\S*\$/ ) {
 
         # something clever, expand it
@@ -276,10 +263,8 @@ sub subsvars {
 # also C:\xyz as a non-target (overlap with parse_makefile)
 sub tokenize {
     my ( $string, @extrasep ) = @_;
-    ## no critic ( BuiltinFunctions::RequireBlockGrep BuiltinFunctions::RequireBlockMap)
     my $pat  = join '|', '\s+', map quotemeta, @extrasep;
     my @toks = grep defined && length, parse_line $pat, 1, $string;
-    ## use critic
     s/\\(\s)/$1/g for @toks;
     return \@toks;
 }
@@ -435,9 +420,7 @@ sub pseudos {
         my $t = delete $self->{Dot}{ '.' . $key };
         if ( defined $t ) {
             $self->{$key} = {};
-            ## no critic (BuiltinFunctions::RequireBlockMap)
             foreach my $dep ( map @{ $_->prereqs }, @{ $t->rules } ) {
-                ## use critic
                 $self->{$key}{$dep} = 1;
             }
         }
@@ -447,17 +430,13 @@ sub pseudos {
 
 sub find_makefile {
     my ( $self, $file, $dir ) = @_;
-    ## no critic ( BuiltinFunctions::RequireBlockGrep )
     my @dirs = grep defined, $self->{InDir}, $dir;
     $dir = join '/', @dirs if @dirs;
-    ## use critic
     my $fsmap = $self->fsmap;
     return in_dir $fsmap, $dir, $file if defined $file;
     my @search = qw(makefile Makefile);
     unshift @search, 'GNUmakefile' if $self->{GNU};
-    ## no critic (BuiltinFunctions::RequireBlockMap)
     @search = map in_dir( $fsmap, $dir, $_ ), @search;
-    ## use critic
     for (@search) {
         return $_ if $fsmap->{file_readable}->($_);
     }
@@ -506,7 +485,6 @@ sub parse_cmdline {
     return \%parsed;
 }
 
-## no critic (BuiltinFunctions::RequireBlockMap)
 my %NAME_QUOTING     = map +( $_ => sprintf "%%%02x", ord $_ ), qw(% :);
 my $NAME_QUOTE_CHARS = join '', '[', ( map quotemeta, sort keys %NAME_QUOTING ), ']';
 
@@ -529,9 +507,7 @@ sub name_decode {
         $_[0]
     ];
 }
-## use critic
 
-## no critic (Subroutines::ProhibitBuiltinHomonyms)
 sub exec {
     my ( $self, $line ) = @_;
     undef %date;
@@ -544,14 +520,10 @@ sub exec {
     }
     return;
 }
-## use critic
 
-## no critic (Subroutines::RequireFinalReturn)
 sub NextPass { shift->{Pass}++ }
 sub pass     { shift->{Pass} }
-## use critic
 
-## no critic (RequireArgUnpacking)
 sub parse_args {
     my ( @vars, @targets );
     foreach (@_) {
@@ -563,7 +535,6 @@ sub parse_args {
     }
     return \@vars, \@targets;
 }
-## use critic
 
 sub _rmf_search_rule {
     my ( $rule, $target_obj, $target, $rule_no, $rmfs ) = @_;
@@ -588,9 +559,7 @@ sub find_recursive_makes {
     for my $target ( sort $self->targets ) {
         my $target_obj = $self->target($target);
         my $rule_no    = 0;
-        ## no critic (BuiltinFunctions::RequireBlockMap)
         push @found, map _rmf_search_rule( $_, $target_obj, $target, $rule_no++, $rmfs ), @{ $target_obj->rules };
-        ## use critic
     }
     return @found;
 }
@@ -646,9 +615,7 @@ sub as_graph {
                 my $from           = $no_rules ? $target : name_encode( [ 'rule', $target, $rule_index ] );
                 my $indir_makefile = $self->find_makefile( $makefile, $dir );
                 next unless $indir_makefile && $fr->($indir_makefile);
-                ## no critic (BuiltinFunctions::RequireBlockMap)
                 my $cache_key = join ' ', $indir_makefile, sort map join( '=', @$_ ), @$vars;
-                ## use critic
                 if ( !$seen{$cache_key}++ ) {
                     my $make2 = ref($self)->new( %make_args, InDir => in_dir( $fsmap, $InDir, $dir ) );
                     $make2->parse($makefile);
@@ -665,14 +632,10 @@ sub as_graph {
                     $g->ingest($g2);
                 }
                 if ($no_rules) {
-                    ## no critic (BuiltinFunctions::RequireBlockMap)
                     $g->add_edge( $from, $_ ) for map "$dir/$_", @$targets;
-                    ## use critic
                 } else {
-                    ## no critic (BuiltinFunctions::RequireBlockMap)
                     $g->set_edge_attribute( $from, $_, fromline => $line )
                         for map name_encode( [ 'target', "$dir/$_" ] ), @$targets;
-                    ## use critic
                 }
             }
         }
@@ -686,11 +649,9 @@ sub apply {
     my ( $vars, $targets ) = parse_args(@args);
     $self->set_var(@$_) for @$vars;
     $targets = [ $self->{Vars}{'.DEFAULT_GOAL'} ] unless @$targets;
-    ## no critic (BuiltinFunctions::RequireBlockGrep BuiltinFunctions::RequireBlockMap)
     my @bad_targets = grep !$self->{Depend}{$_}, @$targets;
     die "Cannot '$method' (@args) - no target @bad_targets" if @bad_targets;
     return map $self->target($_)->recurse($method), @$targets;
-    ## use critic
 }
 
 # Spew a shell script to perfom the 'make' e.g. make -n
@@ -701,9 +662,7 @@ sub Script {
     for ( $self->apply( Make => @args ) ) {
         my ( $name, @cmd ) = @$_;
         push @results, $com . $name . "\n";
-        ## no critic (BuiltinFunctions::RequireBlockMap)
         push @results, map parse_cmdline($_)->{line} . "\n", @cmd;
-        ## use critic
     }
     return @results;
 }

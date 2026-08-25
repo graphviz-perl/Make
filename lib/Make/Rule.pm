@@ -4,9 +4,7 @@ use strict;
 use warnings;
 use Carp;
 use Make::Rule::Vars;
-## no critic (ValuesAndExpressions::ProhibitConstantPragma)
 use constant DEBUG => $ENV{MAKE_DEBUG};
-## use critic
 
 our $VERSION = '2.011';
 
@@ -58,9 +56,7 @@ sub exp_recipe {
     my ( $self, $target ) = @_;
     my $info      = $target->Info;
     my @subs_args = ( $info->function_packages, [ $self->auto_vars($target), $info->vars, \%ENV ] );
-    ## no critic (BuiltinFunctions::RequireBlockMap)
     my @cmd = map Make::subsvars( $_, @subs_args ), @{ $self->recipe };
-    ## use critic
     return (wantarray) ? @cmd : \@cmd;
 }
 

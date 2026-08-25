@@ -9,9 +9,7 @@ my @temp_handles;    # so they don't get destroyed before end of program
 
 sub wildcard {
     my ( $fsmap, @args ) = @_;
-    ## no critic (BuiltinFunctions::RequireBlockMap)
     return map $fsmap->{glob}->($_), @args;
-    ## use critic
 }
 
 sub shell {
@@ -23,16 +21,12 @@ sub shell {
 
 sub addprefix {
     my ( $fsmap, $prefix, $text_input ) = @_;
-    ## no critic (BuiltinFunctions::RequireBlockMap)
     return map $prefix . $_, @{ Make::tokenize($text_input) };
-    ## use critic
 }
 
 sub addsuffix {
     my ( $fsmap, $suffix, $text_input ) = @_;
-    ## no critic (BuiltinFunctions::RequireBlockMap)
     return map $_ . $suffix, @{ Make::tokenize($text_input) };
-    ## use critic
 }
 
 sub notdir {

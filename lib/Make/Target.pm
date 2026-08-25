@@ -2,9 +2,7 @@ package Make::Target;
 
 use strict;
 use warnings;
-## no critic (ValuesAndExpressions::ProhibitConstantPragma)
 use constant DEBUG => $ENV{MAKE_DEBUG};
-## use critic
 
 our $VERSION = '2.011';
 
@@ -37,9 +35,7 @@ sub phony {
 sub has_recipe {
     my ($self) = @_;
     return $self->{HAS_RECIPE} if defined $self->{HAS_RECIPE};
-    ## no critic (BuiltinFunctions::RequireBlockGrep)
     return $self->{HAS_RECIPE} = grep @{ $_->recipe }, @{ $self->{RULES} };
-    ## use critic
 }
 
 sub rules {
@@ -92,9 +88,7 @@ sub recurse {
     my @results;
     DEBUG and print STDERR "Build " . $self->Name, "\n";
     foreach my $rule ( @{ $self->rules } ) {
-        ## no critic (BuiltinFunctions::RequireBlockMap)
         push @results, map $info->target($_)->recurse($method), @{ $rule->prereqs };
-        ## use critic
         push @results, $rule->$method($self);
     }
     return @results;
