@@ -28,9 +28,6 @@ my %WriteMakefileArgs = (
                 },
             },
             test => {
-                requires => {
-                    'Test::More' => '0.82',                 # explain
-                },
                 recommends => {
                     'App::Prove' => '3.00',                 # prove -j4
                 },
