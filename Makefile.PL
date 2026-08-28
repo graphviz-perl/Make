@@ -20,11 +20,7 @@ my %WriteMakefileArgs = (
         prereqs        => {
             develop => {
                 requires => {
-                    "Test::Version"       => "1.003001",
                     "Test::Pod"           => "1.00",
-                    "Test::Code::TidyAll" => "0.41",
-                    "Test::Perl::Critic"  => "1.02",
-                    "Perl::Tidy"          => "20200822",    # new formatting
                 },
             },
             test => {
@@ -46,12 +42,6 @@ my %WriteMakefileArgs = (
     },
     "MIN_PERL_VERSION" => "5.006",
     "PREREQ_PM"        => {
-        "Carp"             => 0,
-        "Config"           => 0,
-        "Cwd"              => 0,
-        "File::Spec"       => 0,
-        "strict"           => 0,
-        "warnings"         => 0,
         "Text::Balanced"   => '2.03',
         "Text::ParseWords" => '3.24',
         "Graph"            => '0.9712',    # TC with multiedged

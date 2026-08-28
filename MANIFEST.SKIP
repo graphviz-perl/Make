@@ -3,11 +3,10 @@
 \b(pm_to_blib|Makefile)$
 \bblib\b
 \bcleanup\b
-\.git/
-MANIFEST.bak
-MYMETA.yml
-MYMETA.json
+^\.git
+MANIFEST\.bak
+MYMETA\.yml
+MYMETA\.json
 META\..*
-.tidyall.d/
 \.swp$
 ^cover_db

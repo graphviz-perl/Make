@@ -1,8 +1,3 @@
-.gitignore
-.perlcriticrc
-.perltidyrc
-.tidyallrc
-.travis.yml
 Changes
 lib/Make.pm
 lib/Make/Functions.pm
@@ -15,9 +10,6 @@ MANIFEST.SKIP
 README
 scripts/pure-perl-make
 t/00-report-prereqs.t
-t/94-version.t
-t/95-tidyall.t
-t/96-perl-critic.t
 t/97-pod.t
 t/make.t
 t/snapshots/make_t/no_rules_graph
