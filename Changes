@@ -1,4 +1,5 @@
 - README update (#14 #15) - thanks @thehanslevi, @lbe for report
+- macro (aka variable) assignments can now be e.g. "$(V)MS = -s"
 
 2.011 2020-12-23
 - add_suffix function - thanks @jwrightecs

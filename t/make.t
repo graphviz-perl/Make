@@ -38,6 +38,7 @@ my @ASTs = (
     [ "all : other # drop ; echo hi\n", [ [ 'rule', 'all', ':', 'other', [],                 [] ] ], ],
     [ "x = y\n",                        [ [ 'var',  'x',   'y', ] ], ],
     [ "x = y\r\n",                      [ [ 'var',  'x',   'y', ] ], ],
+    [ "\$(V)MS = -s\n",                 [ [ 'var',  '$(V)MS', '-s', ] ], ],
 );
 for my $l (@ASTs) {
     my ( $in, $expected ) = @$l;
@@ -62,8 +63,8 @@ for my $l (@TOKENs) {
 
 my $FUNCTIONS = ['Make::Functions'];
 my $VARS      = {
-    k1    => 'k2',
-    k2    => 'hello',
+    k1 => 'k2',
+    k2 => 'hello',
     files => 'a.o b.o c.o',
     empty => '',
     space => ' ',
@@ -138,11 +139,13 @@ $m->parse( \sprintf <<'EOF', $tempfile );
 var = value
 tempfile = %s
 targets = other
+V = 0
+$(V)MS = -s
 
 all: $(targets)
 
 other: Changes README
-	@echo $@ $^ $< $(var) \
+	@echo $@ $(0MS) $^ $< $(var) \
 	   >"$(tempfile)"
 EOF
 ok !$m->target('all')->has_recipe, 'all has no recipe';
@@ -151,12 +154,12 @@ ok !$m->has_target('not_there'), 'has_target';
 ok $m->has_target('all'), 'has_target existing';
 $m->Make('all');
 my $contents = do { local $/; open my $fh, '<', $tempfile; <$fh> };
-like $contents, qr/^other Changes README Changes value/;
+like $contents, qr/^other -s Changes README Changes value/;
 my ($other_rule) = @{ $m->target('other')->rules };
 my $got = $other_rule->recipe;
-is_deeply $got, ['@echo $@ $^ $< $(var) >"$(tempfile)"'] or diag explain $got;
+is_deeply $got, ['@echo $@ $(0MS) $^ $< $(var) >"$(tempfile)"'] or diag explain $got;
 $got = $other_rule->recipe_raw;
-is_deeply $got, [qq{\@echo \$@ \$^ \$< \$(var) \\\n   >"\$(tempfile)"}] or diag explain $got;
+is_deeply $got, [qq{\@echo \$@ \$(0MS) \$^ \$< \$(var) \\\n   >"\$(tempfile)"}] or diag explain $got;
 my $all_target = $m->target('all');
 my ($all_rule) = @{ $all_target->rules };
 $got = $all_rule->prereqs;

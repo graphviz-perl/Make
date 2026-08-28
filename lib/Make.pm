@@ -334,7 +334,8 @@ sub process_ast_bit {
             } or warn $@ if $opt ne '-';
         }
     } elsif ( $type eq 'var' ) {
-        $self->set_var( $args[0], defined $args[1] ? $args[1] : "" );
+        my ($var, $val) = ($args[0], defined $args[1] ? $args[1] : "");
+        $self->set_var($self->expand($var), $val);
     } elsif ( $type eq 'vpath' ) {
         my ( $pattern, @vpath ) = @args;
         $self->{Vpath}{$pattern} = \@vpath;
@@ -370,7 +371,7 @@ sub parse_makefile {
             push @ast, [ 'include', $1, $2 ];
         } elsif (s/^#+\s*//) {
             push @ast, [ 'comment', $_ ];
-        } elsif (/^\s*([\w._]+)\s*:?=\s*(.*)$/) {
+        } elsif (/^\s*([\w._\$\(\)]+)\s*:?=\s*(.*)$/) {
             push @ast, [ 'var', $1, $2 ];
         } elsif (/^vpath\s+(\S+)\s+([^#]*)/) {
             my ( $pattern, $path ) = ( $1, $2 );
@@ -406,8 +407,7 @@ sub parse_makefile {
         } else {
             warn "Ignore '$_'\n";
         }
-    }
-    continue {
+    } continue {
         ( $_, $raw ) = get_full_line($fh);
     }
     return \@ast;
