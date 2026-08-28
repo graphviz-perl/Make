@@ -3,11 +3,11 @@ use warnings;
 
 use ExtUtils::MakeMaker;
 
-my %WriteMakefileArgs = (
+WriteMakefile(
     "ABSTRACT"           => "module for processing makefiles",
     "AUTHOR"             => "Nick Ing-Simmons",
     "CONFIGURE_REQUIRES" => {
-        "ExtUtils::MakeMaker" => 0
+        "ExtUtils::MakeMaker" => "6.63_03",
     },
     "VERSION_FROM" => "lib/Make.pm",
     "NAME"         => "Make",
@@ -52,28 +52,3 @@ my %WriteMakefileArgs = (
         'Test::Snapshot' => '0.06',
     },
 );
-
-my %FallbackPrereqs = (
-    "Carp"                => 0,
-    "Config"              => 0,
-    "Cwd"                 => 0,
-    "File::Spec"          => 0,
-    "ExtUtils::MakeMaker" => 0,
-    "File::Spec"          => 0,
-    "Test::More"          => "1.00",
-    "Text::Balanced"      => '2.03',
-    "Text::ParseWords"    => '3.30',
-    "strict"              => 0,
-    "warnings"            => 0,
-);
-
-unless ( eval { ExtUtils::MakeMaker->VERSION(6.63_03) } ) {
-    delete $WriteMakefileArgs{TEST_REQUIRES};
-    delete $WriteMakefileArgs{BUILD_REQUIRES};
-    $WriteMakefileArgs{PREREQ_PM} = \%FallbackPrereqs;
-}
-
-delete $WriteMakefileArgs{CONFIGURE_REQUIRES}
-    unless eval { ExtUtils::MakeMaker->VERSION(6.52) };
-
-WriteMakefile(%WriteMakefileArgs);
