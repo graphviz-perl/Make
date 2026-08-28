@@ -10,7 +10,6 @@ MANIFEST.SKIP
 README
 scripts/pure-perl-make
 t/00-report-prereqs.t
-t/97-pod.t
 t/make.t
 t/snapshots/make_t/no_rules_graph
 t/snapshots/make_t/recursive_make_graph

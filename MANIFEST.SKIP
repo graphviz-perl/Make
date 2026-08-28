@@ -10,3 +10,4 @@ MYMETA\.json
 META\..*
 \.swp$
 ^cover_db
+^xt
