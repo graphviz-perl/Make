@@ -20,7 +20,8 @@ my %WriteMakefileArgs = (
         prereqs        => {
             develop => {
                 requires => {
-                    "Test::Pod"           => "1.00",
+                    "Test::Pod" => "1.00",
+                    "CPAN::Changes" => "0.400002",
                 },
             },
             test => {

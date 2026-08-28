@@ -17,7 +17,7 @@ jobs:
         include:
           - perl-version: '5.30'
             os: ubuntu-latest
-            #release-test: true
+            release-test: true
             coverage: true
     steps:
       - uses: actions/checkout@v4
