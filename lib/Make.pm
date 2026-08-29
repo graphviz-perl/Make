@@ -41,6 +41,15 @@ sub _find_recmake_cd {
     return ( $dir, $makefile, $vars, $targets );
 }
 
+sub maybe_store {
+  my ($key_s, $value) = @_;
+  !@$value ? () : ($key_s.'S' => $value);
+}
+sub maybe_return {
+  my ($self, $key_s) = @_;
+  $self->{$key_s.'S'} || [];
+}
+
 sub load_modules {
     for (@_) {
         my $pkg = $_;    # to not mutate inputs

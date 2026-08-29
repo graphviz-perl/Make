@@ -9,16 +9,15 @@ use constant DEBUG => $ENV{MAKE_DEBUG};
 our $VERSION = '2.011';
 
 sub prereqs {
-    my ($self) = @_;
-    $self->{PREREQS} || [];
+  Make::maybe_return($_[0], 'PREREQ')
 }
 
 sub recipe {
-    return shift->{RECIPES} || [];
+  Make::maybe_return($_[0], 'RECIPE')
 }
 
 sub recipe_raw {
-    return shift->{RAW_RECIPES} || [];
+  Make::maybe_return($_[0], 'RAW_RECIPE')
 }
 
 # The key make test - is target out-of-date as far as this rule is concerned
@@ -70,10 +69,10 @@ sub new {
     confess "recipe_raw $recipe_raw not an array reference"
         if 'ARRAY' ne ref $recipe_raw;
     return bless {
-        KIND       => $kind,         # : or ::
-        !@$prereqs ? () : (PREREQS => $prereqs), # right hand args
-        !@$recipe ? () : (RECIPES => $recipe),
-        !@$recipe_raw ? () : (RAW_RECIPES => $recipe_raw),
+      KIND => $kind, # : or ::
+      Make::maybe_store(PREREQ => $prereqs), # right hand args
+      Make::maybe_store(RECIPE => $recipe),
+      Make::maybe_store(RAW_RECIPE => $recipe_raw),
     }, $class;
 }
 
