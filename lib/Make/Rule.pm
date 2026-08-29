@@ -66,8 +66,8 @@ sub new {
         if 'ARRAY' ne ref $prereqs;
     confess "recipe $recipe not an array reference"
         if 'ARRAY' ne ref $recipe;
-    confess "recipe but no recipe_raw"
-        if $recipe and not $recipe_raw;
+    confess "recipe_raw $recipe_raw not an array reference"
+        if 'ARRAY' ne ref $recipe_raw;
     return bless {
         KIND       => $kind,         # : or ::
         PREREQS    => $prereqs,      # right hand args
