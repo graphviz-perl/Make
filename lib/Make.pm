@@ -678,7 +678,7 @@ sub apply {
 sub recurse {
   my ($self, $method, $target) = @_;
   my $target_obj = $self->target($target);
-  return if $target_obj->done;
+  return if $target_obj->done($self->pass);
   my @results;
   DEBUG and print STDERR "Build $target\n";
   foreach my $rule (@{ $target_obj->rules($self->phony($target)) }) {

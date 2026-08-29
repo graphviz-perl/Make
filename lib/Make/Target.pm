@@ -40,7 +40,7 @@ sub rules {
 }
 
 sub add_rule {
-  my ( $self, $rule ) = @_;
+  my ($self, $rule) = @_;
   my $new_kind = $rule->kind;
   my $kind     = $self->{RULE_TYPE} ||= $new_kind;
   die "Target '$self->{NAME}' had '$kind' but tried to add '$new_kind'"
@@ -64,12 +64,12 @@ sub Info {
 }
 
 sub done {
-    my $self = shift;
-    my $pass = $self->Info->pass;
-    $self->{Pass} ||= 0;
-    return 1 if $self->{Pass} == $pass;
-    $self->{Pass} = $pass;
-    return 0;
+  my ($self, $pass) = @_;
+  confess "pass not given" if !defined $pass;
+  $self->{Pass} ||= 0;
+  return 1 if $self->{Pass} == $pass;
+  $self->{Pass} = $pass;
+  return 0;
 }
 
 1;
