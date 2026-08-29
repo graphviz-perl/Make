@@ -157,7 +157,7 @@ sub dotrules {
       next unless my $r = delete $Dot->{ $f . $t };
       DEBUG and print STDERR "Pattern %$t : %$f\n";
       my $target   = $self->target( '%' . $t );
-      my $thisrule = $r->rules->[-1]; # last-specified
+      my $thisrule = $r->rules($self->phony($r->Name))->[-1]; # last-specified
       die "Failed on pattern rule for '$f$t', no prereqs allowed"
         if @{ $thisrule->prereqs };
       my $rule = Make::Rule->new( '::', [ '%' . $f ], $thisrule->recipe, $thisrule->recipe_raw );
@@ -191,7 +191,7 @@ sub patrule {
         next unless defined( my $Pat = patmatch( $key, $target ) );
         DEBUG and print STDERR " Pattern $key matched ($Pat)\n";
         my $t = $self->{Pattern}{$key};
-        foreach my $rule ( @{ $t->rules } ) {
+        foreach my $rule ( @{ $t->rules($self->phony($t->Name)) } ) {
             my @dep = @{ $rule->prereqs };
             DEBUG and print STDERR "  Try rule : @dep\n";
             next unless @dep;
@@ -440,7 +440,7 @@ sub pseudos {
     my $t = delete $self->{Dot}{ '.' . $key };
     if ( defined $t ) {
       $self->{$key} = {};
-      foreach my $dep (map @{ $_->prereqs }, @{ $t->rules }) {
+      foreach my $dep (map @{ $_->prereqs }, @{ $t->rules($self->phony($t->Name)) }) {
         $self->{$key}{$dep} = 1;
       }
     }
@@ -579,7 +579,7 @@ sub find_recursive_makes {
     for my $target ( sort $self->targets ) {
         my $target_obj = $self->target($target);
         my $rule_no    = 0;
-        push @found, map _rmf_search_rule( $_, $target_obj, $target, $rule_no++, $rmfs ), @{ $target_obj->rules };
+        push @found, map _rmf_search_rule( $_, $target_obj, $target, $rule_no++, $rmfs ), @{ $target_obj->rules($self->phony($target)) };
     }
     return @found;
 }
@@ -604,7 +604,7 @@ sub as_graph {
         $g->add_vertex($node_name);
         my $rule_no    = -1;
         my $target_obj = $self->target($target);
-        for my $rule ( @{ $target_obj->rules } ) {
+        for my $rule ( @{ $target_obj->rules($self->phony($target)) } ) {
             $rule_no++;
             my $recipe      = $rule->recipe;
             my $recipe_hash = { recipe => $recipe, recipe_raw => $rule->recipe_raw };
@@ -681,11 +681,11 @@ sub recurse {
   return if $target_obj->done;
   my @results;
   DEBUG and print STDERR "Build $target\n";
-  foreach my $rule (@{ $target_obj->rules }) {
+  foreach my $rule (@{ $target_obj->rules($self->phony($target)) }) {
     push @results, map $self->recurse($method, $_), @{ $rule->prereqs };
     push @results, $rule->$method($target_obj);
   }
-  return @results;
+  @results;
 }
 
 # Spew a shell script to perfom the 'make' e.g. make -n

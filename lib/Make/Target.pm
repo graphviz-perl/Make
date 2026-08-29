@@ -28,11 +28,6 @@ sub date {
     return $info->date( $self->Name );
 }
 
-sub phony {
-    my $self = shift;
-    return $self->Info->phony( $self->Name );
-}
-
 sub has_recipe {
   my ($self) = @_;
   return $self->{HAS_RECIPE} if defined $self->{HAS_RECIPE};
@@ -40,8 +35,9 @@ sub has_recipe {
 }
 
 sub rules {
-  my ($self) = @_;
-  if ( !$self->phony && !$self->has_recipe ) {
+  my ($self, $is_phony) = @_;
+  confess "is_phony not given" if !defined $is_phony;
+  if ( !$is_phony && !$self->has_recipe ) {
     my $rule = $self->Info->patrule( $self->Name, $self->{RULE_TYPE} || ':' );
     DEBUG and print STDERR "Implicit rule (", $self->Name, "): @{ $rule ? $rule->prereqs : ['none'] }\n";
     $self->add_rule($rule) if $rule;
