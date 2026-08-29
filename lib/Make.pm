@@ -702,27 +702,27 @@ sub Make {
 }
 
 sub new {
-    my ( $class, %args ) = @_;
-    my $self = bless {
-        Pattern              => {},                      # GNU style %.o : %.c
-        Dot                  => {},                      # Trad style .c.o
-        Vpath                => {},                      # vpath %.c info
-        Vars                 => {},                      # Variables defined in makefile
-        Depend               => {},                      # hash of targets
-        Pass                 => 0,                       # incremented each sweep
-        Done                 => {},
-        FunctionPackages     => [qw(Make::Functions)],
-        FSFunctionMap        => \%fs_function_map,
-        RecursiveMakeFinders => \@RECMAKE_FINDS,
-        %args,
-    }, $class;
-    $self->set_var( 'CC',     $Config{cc} );
-    $self->set_var( 'AR',     $Config{ar} );
-    $self->set_var( 'CFLAGS', $Config{optimize} );
-    load_modules( @{ $self->function_packages } );
-    $DEFAULTS_AST ||= parse_makefile( \*DATA );
-    $self->process_ast_bit(@$_) for @$DEFAULTS_AST;
-    return $self;
+  my ( $class, %args ) = @_;
+  # member: Pass, incremented each sweep
+  my $self = bless {
+    Pattern              => {},      # GNU style %.o : %.c
+    Dot                  => {},      # Trad style .c.o
+    Vpath                => {},      # vpath %.c info
+    Vars                 => {},      # Variables defined in makefile
+    Depend               => {},      # hash of targets
+    Done                 => {},
+    FunctionPackages     => [qw(Make::Functions)],
+    FSFunctionMap        => \%fs_function_map,
+    RecursiveMakeFinders => \@RECMAKE_FINDS,
+    %args,
+  }, $class;
+  $self->set_var( 'CC',     $Config{cc} );
+  $self->set_var( 'AR',     $Config{ar} );
+  $self->set_var( 'CFLAGS', $Config{optimize} );
+  load_modules( @{ $self->function_packages } );
+  $DEFAULTS_AST ||= parse_makefile( \*DATA );
+  $self->process_ast_bit(@$_) for @$DEFAULTS_AST;
+  $self;
 }
 
 =head1 NAME

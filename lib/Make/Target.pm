@@ -10,15 +10,15 @@ our $VERSION = '2.011';
 # There is an instance of this for each 'target' that apears on
 # the left hand side of a rule i.e. for each thing that can be made.
 sub new {
-    my ( $class, $name, $info ) = @_;
-    # member: HAS_RECIPE: undef, boolean
-    # member: RULE_TYPE: undef, :, ::
-    # member: RULE | RULES
-    return bless {
-        NAME => $name, # name of thing
-        MAKEFILE => $info, # Makefile context
-        Pass => 0, # Used to determine if 'done' this sweep
-    }, $class;
+  my ( $class, $name, $info ) = @_;
+  # member: HAS_RECIPE: undef, boolean
+  # member: RULE_TYPE: undef, :, ::
+  # member: RULE | RULES
+  # member: Pass, used to determine if 'done' this sweep
+  bless {
+    NAME => $name, # name of thing
+    MAKEFILE => $info, # Makefile context
+  }, $class;
 }
 
 sub date {
@@ -75,7 +75,8 @@ sub Info {
 sub done {
     my $self = shift;
     my $pass = $self->Info->pass;
-    return 1 if ( $self->{Pass} == $pass );
+    $self->{Pass} ||= 0;
+    return 1 if $self->{Pass} == $pass;
     $self->{Pass} = $pass;
     return 0;
 }
