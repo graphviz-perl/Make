@@ -15,34 +15,34 @@ my %NEXTKEY = map +( $_ => ++$i ), @KEYS;
 # hash references to possible sources of variable definitions.
 
 sub TIEHASH {
-    my ( $class, $rule, $target ) = @_;
-    return bless [ $rule, $target ], $class;
+  my ($class, $rule, $info, $target) = @_;
+  bless [ $rule, $info, $target ], $class;
 }
 
 sub FIRSTKEY {
-    return $KEYS[0];
+  $KEYS[0];
 }
 
 sub NEXTKEY {
-    my ( $self, $lastkey ) = @_;
-    return $KEYS[ $NEXTKEY{$lastkey} ];
+  my ( $self, $lastkey ) = @_;
+  $KEYS[ $NEXTKEY{$lastkey} ];
 }
 
 sub EXISTS {
-    my ( $self, $key ) = @_;
-    return exists $NEXTKEY{$key};
+  my ( $self, $key ) = @_;
+  exists $NEXTKEY{$key};
 }
 
 sub FETCH {
-    my ( $self, $v )      = @_;
-    my ( $rule, $target ) = @$self;
-    DEBUG and print STDERR "FETCH $v for ", $target->Name, "\n";
-    return $target->Name if $v eq '@';
-    return $target->Base if $v eq '*';
-    return join ' ', @{ $rule->prereqs }         if $v eq '^';
-    return join ' ', $rule->out_of_date($target) if $v eq '?';
-    return ( @{ $rule->prereqs } )[0] if $v eq '<';
-    return;
+  my ($self, $v)      = @_;
+  my ($rule, $info, $target) = @$self;
+  DEBUG and print STDERR "FETCH $v for ", $target->Name, "\n";
+  return $target->Name if $v eq '@';
+  return $target->Base if $v eq '*';
+  return join ' ', @{ $rule->prereqs }         if $v eq '^';
+  return join ' ', $rule->out_of_date($target, $info) if $v eq '?';
+  return ( @{ $rule->prereqs } )[0] if $v eq '<';
+  ();
 }
 
 1;

@@ -164,7 +164,7 @@ my $all_target = $m->target('all');
 my ($all_rule) = @{ $all_target->rules($m->phony('all'), $m) };
 $got = $all_rule->prereqs;
 is_deeply $got, ['other'] or diag explain $got;
-$got = $all_rule->auto_vars($all_target);
+$got = $all_rule->auto_vars($all_target, $m);
 ok exists $got->{'@'}, 'Rules.Vars.EXISTS';
 is_deeply [ keys %$got ], [qw( @ * ^ ? < )] or diag explain $got;
 

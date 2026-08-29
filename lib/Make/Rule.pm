@@ -40,23 +40,22 @@ sub out_of_date {
     }
   }
   return @dep if wantarray;
-
-  # Note special case of no prerequisites means it is always  out-of-date!
+  # Note special case of no prerequisites means it is always out-of-date!
   !$count;
 }
 
 sub auto_vars {
-    my ( $self, $target ) = @_;
-    my %var;
-    tie %var, 'Make::Rule::Vars', $self, $target;
-    return \%var;
+  my ($self, $target, $info) = @_;
+  confess "info not given" if !defined $info;
+  tie my %var, 'Make::Rule::Vars', $self, $info, $target;
+  return \%var;
 }
 
 # - May need vpath processing
 sub exp_recipe {
   my ($self, $target, $info) = @_;
   confess "info not given" if !defined $info;
-  my @subs_args = ( $info->function_packages, [ $self->auto_vars($target), $info->vars, \%ENV ] );
+  my @subs_args = ($info->function_packages, [ $self->auto_vars($target, $info), $info->vars, \%ENV ]);
   my @cmd = map Make::subsvars( $_, @subs_args ), @{ $self->recipe };
   wantarray ? @cmd : \@cmd;
 }
@@ -130,7 +129,7 @@ Make::Rule - a rule with prerequisites and recipe
     my @expanded_cmds = @{ $rule->exp_recipe($target) }; # vars expanded
     my @raw_cmds = @{ $rule->recipe_raw }; # with any \ still on line-ends
     my @ood = $rule->out_of_date($target, $make);
-    my $vars = $rule->auto_vars($target); # tied hash-ref
+    my $vars = $rule->auto_vars($target, $make); # tied hash-ref
 
 =head1 DESCRIPTION
 
