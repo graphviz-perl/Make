@@ -13,11 +13,11 @@ sub prereqs {
 }
 
 sub recipe {
-    return shift->{RECIPE};
+    return shift->{RECIPE} || [];
 }
 
 sub recipe_raw {
-    return shift->{RECIPE_RAW};
+    return shift->{RECIPE_RAW} || [];
 }
 
 # The key make test - is target out-of-date as far as this rule is concerned
@@ -71,8 +71,8 @@ sub new {
     return bless {
         KIND       => $kind,         # : or ::
         PREREQS    => $prereqs,      # right hand args
-        RECIPE     => $recipe,       # recipe
-        RECIPE_RAW => $recipe_raw,
+        !@$recipe ? () : (RECIPE => $recipe),
+        !@$recipe_raw ? () : (RECIPE_RAW => $recipe_raw),
     }, $class;
 }
 
