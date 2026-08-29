@@ -152,16 +152,16 @@ sub dotrules {
   my $Dot    = delete $self->{Dot};
   foreach my $f (@suffix) {
     foreach my $t ( '', @suffix ) {
-      delete $self->{Depend}{ $f . $t };
-      next unless my $r = delete $Dot->{ $f . $t };
-      DEBUG and print STDERR "Pattern %$t : %$f\n";
-      my $name = "%$t";
-      my $target = $self->target($name);
-      my $thisrule = $r->rules($self->phony($name), $name, $self)->[-1]; # last-specified
-      die "Failed on pattern rule for '$f$t', no prereqs allowed"
+      my ($name_f, $name_t, $name_ft) = ("%$f", "%$t", $f . $t);
+      delete $self->{Depend}{ $name_ft };
+      next unless my $r = delete $Dot->{$name_ft};
+      DEBUG and print STDERR "Pattern $name_t : $name_f\n";
+      my $target = $self->target($name_t);
+      my $thisrule = $r->rules($self->phony($name_ft), $name_ft, $self)->[-1]; # last-specified
+      die "Failed on pattern rule for '$name_ft', no prereqs allowed"
         if @{ $thisrule->prereqs };
-      my $rule = Make::Rule->new( '::', [ '%' . $f ], $thisrule->recipe, $thisrule->recipe_raw );
-      $self->target($name)->add_rule($rule, $name);
+      my $rule = Make::Rule->new('::', [ $name_f ], $thisrule->recipe, $thisrule->recipe_raw);
+      $target->add_rule($rule, $name_t);
     }
   }
   return;
