@@ -19,6 +19,8 @@ sub new {
   bless {}, $class;
 }
 
+sub rule_type { $_[0]{RULE_TYPE} || ':' }
+
 sub has_recipe {
   my ($self) = @_;
   return $self->{HAS_RECIPE} if defined $self->{HAS_RECIPE};
@@ -30,7 +32,7 @@ sub rules {
   confess "is_phony not given" if !defined $is_phony;
   confess "info not given" if !defined $info;
   if ( !$is_phony && !$self->has_recipe ) {
-    my $rule = $info->patrule($name, $self->{RULE_TYPE} || ':');
+    my $rule = $info->patrule($name, $self->rule_type);
     DEBUG and print STDERR "Implicit rule ($name): @{ $rule ? $rule->prereqs : ['none'] }\n";
     $self->add_rule($rule, $name) if $rule;
   }
