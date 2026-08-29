@@ -80,14 +80,14 @@ sub new {
 }
 
 sub kind {
-    return shift->{KIND};
+  $_[0]{KIND};
 }
 
 sub Make {
-  my ($self, $target, $info) = @_;
+  my ($self, $target, $name, $info) = @_;
   confess "info not given" if !defined $info;
   return if !$self->out_of_date($target, $info);
-  [ $target->Name, $self->exp_recipe($target, $info) ];
+  [ $name, $self->exp_recipe($target, $info) ];
 }
 
 #
@@ -97,18 +97,16 @@ sub Make {
 # - may be useful for writing makefiles from MakeMaker too...
 #
 sub Print {
-  my ($self, $target, $info) = @_;
+  my ($self, $target, $name, $info) = @_;
   confess "info not given" if !defined $info;
-  print $target->Name, ' ', $self->{KIND}, ' ';
+  print "$name $self->{KIND} ";
   print " \\\n   $_" for $self->prereqs;
   print "\n";
   my @cmd = $self->exp_recipe($target, $info);
   if (@cmd) {
-    foreach my $file (@cmd) {
-      print "\t", $file, "\n";
-    }
+    print "\t$_\n" for @cmd;
   } else {
-    print STDERR "No recipe for ", $target->Name, "\n" unless $self->target->phony;
+    print STDERR "No recipe for $name\n" unless $self->target->phony;
   }
   print "\n";
   ();

@@ -676,36 +676,35 @@ sub recurse {
   DEBUG and print STDERR "Build $target\n";
   foreach my $rule (@{ $target_obj->rules($self->phony($target), $self) }) {
     push @results, map $self->recurse($method, $_), @{ $rule->prereqs };
-    push @results, $rule->$method($target_obj, $self);
+    push @results, $rule->$method($target_obj, $target, $self);
   }
   @results;
 }
 
 # Spew a shell script to perfom the 'make' e.g. make -n
 sub Script {
-    my ( $self, @args ) = @_;
-    my $com = ( $^O eq 'MSWin32' ) ? 'rem ' : '# ';
-    my @results;
-    for ( $self->apply( Make => @args ) ) {
-        my ( $name, @cmd ) = @$_;
-        push @results, $com . $name . "\n";
-        push @results, map parse_cmdline($_)->{line} . "\n", @cmd;
-    }
-    return @results;
+  my ($self, @args) = @_;
+  my $com = ( $^O eq 'MSWin32' ) ? 'rem ' : '# ';
+  my @results;
+  for ($self->apply(Make => @args)) {
+    my ($name, @cmd) = @$_;
+    push @results, $com . $name . "\n";
+    push @results, map parse_cmdline($_)->{line} . "\n", @cmd;
+  }
+  @results;
 }
 
 sub Print {
-    my ( $self, @args ) = @_;
-    return $self->apply( Print => @args );
+  my ($self, @args) = @_;
+  $self->apply(Print => @args);
 }
 
 sub Make {
-    my ( $self, @args ) = @_;
-    for ( $self->apply( Make => @args ) ) {
-        my ( $name, @cmd ) = @$_;
-        $self->exec($_) for @cmd;
-    }
-    return;
+  my ($self, @args) = @_;
+  for ($self->apply(Make => @args)) {
+    my ($name, @cmd) = @$_;
+    $self->exec($_) for @cmd;
+  }
 }
 
 sub new {
