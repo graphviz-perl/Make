@@ -8,63 +8,61 @@ our $VERSION = '2.011';
 my @temp_handles;    # so they don't get destroyed before end of program
 
 sub wildcard {
-    my ( $fsmap, @args ) = @_;
-    return map $fsmap->{glob}->($_), @args;
+  my ( $fsmap, @args ) = @_;
+  map $fsmap->{glob}->($_), @args;
 }
 
 sub shell {
-    my ( $fsmap, @args ) = @_;
-    my $value = `@args`;
-    chomp $value;
-    return split "\n", $value;
+  my ( $fsmap, @args ) = @_;
+  my $value = `@args`;
+  chomp $value;
+  split "\n", $value;
 }
 
 sub addprefix {
-    my ( $fsmap, $prefix, $text_input ) = @_;
-    return map $prefix . $_, @{ Make::tokenize($text_input) };
+  my ( $fsmap, $prefix, $text_input ) = @_;
+  map $prefix . $_, @{ Make::tokenize($text_input) };
 }
 
 sub addsuffix {
-    my ( $fsmap, $suffix, $text_input ) = @_;
-    return map $_ . $suffix, @{ Make::tokenize($text_input) };
+  my ( $fsmap, $suffix, $text_input ) = @_;
+  map $_ . $suffix, @{ Make::tokenize($text_input) };
 }
 
 sub notdir {
-    my ( $fsmap, $text_input ) = @_;
-    my @files = @{ Make::tokenize($text_input) };
-    s#^.*/## for @files;
-    return @files;
+  my ( $fsmap, $text_input ) = @_;
+  my @files = @{ Make::tokenize($text_input) };
+  s#^.*/## for @files;
+  @files;
 }
 
 sub dir {
-    my ( $fsmap, $text_input ) = @_;
-    my @files = @{ Make::tokenize($text_input) };
-    foreach (@files) {
-        $_ = './' unless s#^(.*)/[^/]*$#$1#;
-    }
-    return @files;
+  my ( $fsmap, $text_input ) = @_;
+  my @files = @{ Make::tokenize($text_input) };
+  foreach (@files) {
+      $_ = './' unless s#^(.*)/[^/]*$#$1#;
+  }
+  @files;
 }
 
 sub subst {
-    my ( $fsmap, $from, $to, $value ) = @_;
-    $from = quotemeta $from;
-    $value =~ s/$from/$to/g;
-    return $value;
+  my ($fsmap, $from, $to, $value) = @_;
+  $from = quotemeta $from;
+  $value =~ s/$from/$to/gr;
 }
 
 sub patsubst {
-    my ( $fsmap, $from, $to, $value ) = @_;
-    $from = quotemeta $from;
-    $value =~ s/$from(?=(?:\s|\z))/$to/g;
-    return $value;
+  my ($fsmap, $from, $to, $value) = @_;
+  $from = quotemeta $from;
+  $value =~ s/$from(?=(?:\s|\z))/$to/gr;
 }
 
 sub mktmp {
-    my ( $fsmap, $text_input ) = @_;
-    my $fh = File::Temp->new;    # default UNLINK = 1
-    push @temp_handles, $fh;
-    print $fh $text_input;
-    return $fh->filename;
+  my ( $fsmap, $text_input ) = @_;
+  my $fh = File::Temp->new;    # default UNLINK = 1
+  push @temp_handles, $fh;
+  print $fh $text_input;
+  $fh->filename;
 }
 
 =head1 NAME

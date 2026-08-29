@@ -139,7 +139,7 @@ sub locate {
     foreach my $key ( sort keys %{ $self->{Vpath} } ) {
         next unless defined( my $Pat = patmatch( $key, $file ) );
         foreach my $dir ( @{ $self->{Vpath}{$key} } ) {
-            ( my $maybe_file = $dir ) =~ s/%/$Pat/g;
+            my $maybe_file = $dir =~ s/%/$Pat/gr;
             return $maybe_file if $readable->( in_dir $fsmap, $self->{InDir}, $maybe_file );
         }
     }
@@ -517,15 +517,7 @@ sub name_encode {
 }
 
 sub name_decode {
-    my ($s) = @_;
-    [
-        map {
-            my $s = $_;
-            $s =~ s/%(..)/chr hex $1/ges;
-            $s
-        } split ':',
-        $_[0]
-    ];
+  [ map s/%(..)/chr hex $1/gesr, split ':', $_[0] ];
 }
 
 sub exec {

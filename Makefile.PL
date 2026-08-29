@@ -41,7 +41,7 @@ WriteMakefile(
             x_IRC => 'irc://irc.perl.org/#perl'
         },
     },
-    "MIN_PERL_VERSION" => "5.006",
+    MIN_PERL_VERSION => "5.014", # s///r
     "PREREQ_PM"        => {
         "Text::Balanced"   => '2.03',
         "Text::ParseWords" => '3.24',

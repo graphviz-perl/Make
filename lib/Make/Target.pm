@@ -50,13 +50,11 @@ sub add_rule {
 }
 
 sub Name {
-    return shift->{NAME};
+  $_[0]->{NAME};
 }
 
 sub Base {
-    my $name = shift->{NAME};
-    $name =~ s/\.[^.]+$//;
-    return $name;
+  $_[0]{NAME} =~ s/\.[^.]+$//r;
 }
 
 sub done {
@@ -65,7 +63,7 @@ sub done {
   $self->{Pass} ||= 0;
   return 1 if $self->{Pass} == $pass;
   $self->{Pass} = $pass;
-  return 0;
+  0;
 }
 
 1;
