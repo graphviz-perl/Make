@@ -47,7 +47,7 @@ sub out_of_date {
 sub auto_vars {
   my ($self, $target, $info) = @_;
   confess "info not given" if !defined $info;
-  tie my %var, 'Make::Rule::Vars', $self, $info, $target;
+  tie my %var, 'Make::Rule::Vars', $self, $info, $target->Name, $target;
   return \%var;
 }
 
