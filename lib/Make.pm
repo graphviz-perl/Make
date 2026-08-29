@@ -161,7 +161,7 @@ sub dotrules {
       die "Failed on pattern rule for '$f$t', no prereqs allowed"
         if @{ $thisrule->prereqs };
       my $rule = Make::Rule->new( '::', [ '%' . $f ], $thisrule->recipe, $thisrule->recipe_raw );
-      $self->target( '%' . $t )->add_rule($rule);
+      $self->target($name)->add_rule($rule, $name);
     }
   }
   return;
@@ -369,7 +369,7 @@ sub process_ast_bit {
             $self->target($_) for @$prereqs;    # so "exist or can be made"
         }
         my $rule = Make::Rule->new( $kind, $prereqs, $cmnds, $cmnds_raw );
-        $self->target($_)->add_rule($rule) for @$targets;
+        $self->target($_)->add_rule($rule, $_) for @$targets;
     }
     return;
 }
@@ -749,7 +749,7 @@ Make - Pure-Perl implementation of a somewhat GNU-like make.
 
     my $targ = $make->target($name);
     my $rule = Make::Rule->new(':', \@prereqs, \@recipe, \@recipe_raw);
-    $targ->add_rule($rule);
+    $targ->add_rule($rule, $name);
     my @rules = @{ $targ->rules($make->phony($name), $name, $make) };
 
     my @prereqs  = @{ $rule->prereqs };
