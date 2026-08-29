@@ -82,18 +82,4 @@ sub done {
     return 0;
 }
 
-# as part of "out of date" processing, if any child is remade, I need too
-sub recurse {
-  my ($self, $method) = @_;
-  return if $self->done;
-  my $info = $self->Info;
-  my @results;
-  DEBUG and print STDERR "Build " . $self->Name, "\n";
-  foreach my $rule (@{ $self->rules }) {
-    push @results, map $info->target($_)->recurse($method), @{ $rule->prereqs };
-    push @results, $rule->$method($self);
-  }
-  return @results;
-}
-
 1;

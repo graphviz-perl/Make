@@ -671,7 +671,21 @@ sub apply {
   $targets = [ $self->{Vars}{'.DEFAULT_GOAL'} ] unless @$targets;
   my @bad_targets = grep !$self->{Depend}{$_}, @$targets;
   die "Cannot '$method' (@args) - no target @bad_targets" if @bad_targets;
-  map $self->target($_)->recurse($method), @$targets;
+  map $self->recurse($method, $_), @$targets;
+}
+
+# as part of "out of date" processing, if any child is remade, this needs too
+sub recurse {
+  my ($self, $method, $target) = @_;
+  my $target_obj = $self->target($target);
+  return if $target_obj->done;
+  my @results;
+  DEBUG and print STDERR "Build $target\n";
+  foreach my $rule (@{ $target_obj->rules }) {
+    push @results, map $self->recurse($method, $_), @{ $rule->prereqs };
+    push @results, $rule->$method($target_obj);
+  }
+  return @results;
 }
 
 # Spew a shell script to perfom the 'make' e.g. make -n
