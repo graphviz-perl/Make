@@ -9,15 +9,16 @@ use constant DEBUG => $ENV{MAKE_DEBUG};
 our $VERSION = '2.011';
 
 sub prereqs {
-  Make::maybe_return($_[0], 'PREREQ')
+  Make::maybe_return($_[0], 'PREREQ');
 }
 
 sub recipe {
-  Make::maybe_return($_[0], 'RECIPE')
+  Make::maybe_return($_[0], 'RECIPE');
 }
 
 sub recipe_raw {
-  Make::maybe_return($_[0], 'RAW_RECIPE')
+  my @stored = @{ Make::maybe_return($_[0], 'RAW_RECIPE') };
+  @stored ? \@stored : $_[0]->recipe;
 }
 
 # The key make test - is target out-of-date as far as this rule is concerned
@@ -70,6 +71,7 @@ sub new {
     if 'ARRAY' ne ref $recipe_raw;
   confess "recipe (@{[0+@$recipe]}) and recipe_raw (@{[0+@$recipe]}) have different number of elements"
     if @$recipe != @$recipe_raw;
+  $recipe_raw = [] if !grep $recipe->[$_] ne $recipe_raw->[$_], 0..$#$recipe;
   bless {
     KIND => $kind, # : or ::
     Make::maybe_store(PREREQ => $prereqs), # right hand args

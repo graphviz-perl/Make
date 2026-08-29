@@ -23,10 +23,7 @@
             'cd subdir && $(MK)',
             'say hi'
           ],
-          'recipe_raw' => [
-            'cd subdir && $(MK)',
-            'say hi'
-          ]
+          'recipe_raw' => $VAR1->[1]{'sany'}{'sany'}{'0'}{'recipe'}
         }
       }
     }
