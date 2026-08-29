@@ -86,7 +86,7 @@ sub kind {
 sub Make {
   my ($self, $target, $info) = @_;
   confess "info not given" if !defined $info;
-  return unless ( $self->out_of_date($target, $info) );
+  return if !$self->out_of_date($target, $info);
   [ $target->Name, $self->exp_recipe($target, $info) ];
 }
 
@@ -97,23 +97,21 @@ sub Make {
 # - may be useful for writing makefiles from MakeMaker too...
 #
 sub Print {
-    my ( $self, $target ) = @_;
-    my $file;
-    print $target->Name, ' ', $self->{KIND}, ' ';
-    foreach my $file ( $self->prereqs ) {
-        print " \\\n   $file";
+  my ($self, $target, $info) = @_;
+  confess "info not given" if !defined $info;
+  print $target->Name, ' ', $self->{KIND}, ' ';
+  print " \\\n   $_" for $self->prereqs;
+  print "\n";
+  my @cmd = $self->exp_recipe($target, $info);
+  if (@cmd) {
+    foreach my $file (@cmd) {
+      print "\t", $file, "\n";
     }
-    print "\n";
-    my @cmd = $self->exp_recipe($target);
-    if (@cmd) {
-        foreach my $file (@cmd) {
-            print "\t", $file, "\n";
-        }
-    } else {
-        print STDERR "No recipe for ", $target->Name, "\n" unless ( $self->target->phony );
-    }
-    print "\n";
-    return;
+  } else {
+    print STDERR "No recipe for ", $target->Name, "\n" unless $self->target->phony;
+  }
+  print "\n";
+  ();
 }
 
 =head1 NAME
@@ -126,7 +124,7 @@ Make::Rule - a rule with prerequisites and recipe
     my @name_commands = $rule->Make($target);
     my @deps = @{ $rule->prereqs };
     my @cmds = @{ $rule->recipe };
-    my @expanded_cmds = @{ $rule->exp_recipe($target) }; # vars expanded
+    my @expanded_cmds = @{ $rule->exp_recipe($target, $make) }; # vars expanded
     my @raw_cmds = @{ $rule->recipe_raw }; # with any \ still on line-ends
     my @ood = $rule->out_of_date($target, $make);
     my $vars = $rule->auto_vars($target, $make); # tied hash-ref
