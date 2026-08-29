@@ -11,14 +11,12 @@ our $VERSION = '2.011';
 # There is an instance of this for each 'target' that apears on
 # the left hand side of a rule i.e. for each thing that can be made.
 sub new {
-  my ($class, $name) = @_;
+  my ($class) = @_;
   # member: HAS_RECIPE: undef, boolean
   # member: RULE_TYPE: undef, :, ::
   # member: RULE | RULES
   # member: Pass, used to determine if 'done' this sweep
-  bless {
-    NAME => $name, # name of thing
-  }, $class;
+  bless {}, $class;
 }
 
 sub has_recipe {
@@ -47,10 +45,6 @@ sub add_rule {
     if $kind ne $new_kind;
   delete $self->{HAS_RECIPE}; # reset if was no or unknown
   Make::maybe_add($self, 'RULE', $rule);
-}
-
-sub Name {
-  $_[0]->{NAME};
 }
 
 sub done {

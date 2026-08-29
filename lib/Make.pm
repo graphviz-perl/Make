@@ -82,7 +82,7 @@ sub suffixes {
 sub target {
   my ($self, $target) = @_;
   return $self->{Depend}{$target} if exists $self->{Depend}{$target};
-  my $t = $self->{Depend}{$target} = Make::Target->new($target);
+  my $t = $self->{Depend}{$target} = Make::Target->new;
   if ($target =~ /%/) {
     $self->{Pattern}{$target} = $t;
   } elsif ($target =~ /^\./) {
