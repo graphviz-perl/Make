@@ -38,7 +38,7 @@ sub FETCH {
   my ($rule, $info, $target) = @$self;
   DEBUG and print STDERR "FETCH $v for ", $target->Name, "\n";
   return $target->Name if $v eq '@';
-  return $target->Base if $v eq '*';
+  return $target->Name =~ s/\.[^.]+$//r if $v eq '*';
   return join ' ', @{ $rule->prereqs }         if $v eq '^';
   return join ' ', $rule->out_of_date($target, $info) if $v eq '?';
   return ( @{ $rule->prereqs } )[0] if $v eq '<';

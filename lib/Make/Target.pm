@@ -53,10 +53,6 @@ sub Name {
   $_[0]->{NAME};
 }
 
-sub Base {
-  $_[0]{NAME} =~ s/\.[^.]+$//r;
-}
-
 sub done {
   my ($self, $pass) = @_;
   confess "pass not given" if !defined $pass;

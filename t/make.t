@@ -144,6 +144,8 @@ $(V)MS = -s
 
 all: $(targets)
 
+a.x.o:
+
 other: Changes README
 	@echo $@ $(0MS) $^ $< $(var) \
 	   >"$(tempfile)"
@@ -167,6 +169,10 @@ is_deeply $got, ['other'] or diag explain $got;
 $got = $all_rule->auto_vars($all_target, $m);
 ok exists $got->{'@'}, 'Rules.Vars.EXISTS';
 is_deeply [ keys %$got ], [qw( @ * ^ ? < )] or diag explain $got;
+my $ax_target = $m->target('a.x.o');
+my ($ax_rule) = @{ $ax_target->rules($m->phony('a.x.o'), $m) };
+$got = $ax_rule->auto_vars($ax_target, $m);
+is $got->{'*'}, 'a.x';
 
 my $recmake_fsmap = make_fsmap(
     {
@@ -199,7 +205,6 @@ all: ; @"%s" -e "print shift().qq{\n}" "$(space)" >"$(tempfile)"
 .PHONY: all
 EOF
 ok $m->phony('all'),  'all is phony';
-is $m->target('a.x.o')->Base, 'a.x';
 $m->Make;
 $contents = do { local $/; open my $fh, '<', $tempfile; <$fh> };
 is $contents, " \n";
