@@ -198,7 +198,7 @@ tempfile = %s
 all: ; @"%s" -e "print shift().qq{\n}" "$(space)" >"$(tempfile)"
 .PHONY: all
 EOF
-ok $m->target('all')->phony,  'all is phony';
+ok $m->phony('all'),  'all is phony';
 is $m->target('a.x.o')->Base, 'a.x';
 $m->Make;
 $contents = do { local $/; open my $fh, '<', $tempfile; <$fh> };

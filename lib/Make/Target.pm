@@ -3,6 +3,7 @@ package Make::Target;
 use strict;
 use warnings;
 use constant DEBUG => $ENV{MAKE_DEBUG};
+use Carp qw(confess);
 
 our $VERSION = '2.011';
 
@@ -39,13 +40,13 @@ sub has_recipe {
 }
 
 sub rules {
-    my ($self) = @_;
-    if ( !$self->phony && !$self->has_recipe ) {
-        my $rule = $self->Info->patrule( $self->Name, $self->{RULE_TYPE} || ':' );
-        DEBUG and print STDERR "Implicit rule (", $self->Name, "): @{ $rule ? $rule->prereqs : ['none'] }\n";
-        $self->add_rule($rule) if $rule;
-    }
-    Make::maybe_return($self, 'RULE');
+  my ($self) = @_;
+  if ( !$self->phony && !$self->has_recipe ) {
+    my $rule = $self->Info->patrule( $self->Name, $self->{RULE_TYPE} || ':' );
+    DEBUG and print STDERR "Implicit rule (", $self->Name, "): @{ $rule ? $rule->prereqs : ['none'] }\n";
+    $self->add_rule($rule) if $rule;
+  }
+  Make::maybe_return($self, 'RULE');
 }
 
 sub add_rule {
@@ -83,16 +84,16 @@ sub done {
 
 # as part of "out of date" processing, if any child is remade, I need too
 sub recurse {
-    my ( $self, $method ) = @_;
-    return if $self->done;
-    my $info = $self->Info;
-    my @results;
-    DEBUG and print STDERR "Build " . $self->Name, "\n";
-    foreach my $rule ( @{ $self->rules } ) {
-        push @results, map $info->target($_)->recurse($method), @{ $rule->prereqs };
-        push @results, $rule->$method($self);
-    }
-    return @results;
+  my ($self, $method) = @_;
+  return if $self->done;
+  my $info = $self->Info;
+  my @results;
+  DEBUG and print STDERR "Build " . $self->Name, "\n";
+  foreach my $rule (@{ $self->rules }) {
+    push @results, map $info->target($_)->recurse($method), @{ $rule->prereqs };
+    push @results, $rule->$method($self);
+  }
+  return @results;
 }
 
 1;

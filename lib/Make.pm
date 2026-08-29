@@ -148,23 +148,23 @@ sub locate {
 
 # Convert traditional .c.o rules into GNU-like into %.o : %.c
 sub dotrules {
-    my ($self) = @_;
-    my @suffix = $self->suffixes;
-    my $Dot    = delete $self->{Dot};
-    foreach my $f (@suffix) {
-        foreach my $t ( '', @suffix ) {
-            delete $self->{Depend}{ $f . $t };
-            next unless my $r = delete $Dot->{ $f . $t };
-            DEBUG and print STDERR "Pattern %$t : %$f\n";
-            my $target   = $self->target( '%' . $t );
-            my $thisrule = $r->rules->[-1];             # last-specified
-            die "Failed on pattern rule for '$f$t', no prereqs allowed"
-                if @{ $thisrule->prereqs };
-            my $rule = Make::Rule->new( '::', [ '%' . $f ], $thisrule->recipe, $thisrule->recipe_raw );
-            $self->target( '%' . $t )->add_rule($rule);
-        }
+  my ($self) = @_;
+  my @suffix = $self->suffixes;
+  my $Dot    = delete $self->{Dot};
+  foreach my $f (@suffix) {
+    foreach my $t ( '', @suffix ) {
+      delete $self->{Depend}{ $f . $t };
+      next unless my $r = delete $Dot->{ $f . $t };
+      DEBUG and print STDERR "Pattern %$t : %$f\n";
+      my $target   = $self->target( '%' . $t );
+      my $thisrule = $r->rules->[-1]; # last-specified
+      die "Failed on pattern rule for '$f$t', no prereqs allowed"
+        if @{ $thisrule->prereqs };
+      my $rule = Make::Rule->new( '::', [ '%' . $f ], $thisrule->recipe, $thisrule->recipe_raw );
+      $self->target( '%' . $t )->add_rule($rule);
     }
-    return;
+  }
+  return;
 }
 
 #
@@ -434,18 +434,18 @@ sub parse_makefile {
 }
 
 sub pseudos {
-    my $self = shift;
-    foreach my $key (qw(SUFFIXES PHONY PRECIOUS PARALLEL)) {
-        delete $self->{Depend}{ '.' . $key };
-        my $t = delete $self->{Dot}{ '.' . $key };
-        if ( defined $t ) {
-            $self->{$key} = {};
-            foreach my $dep ( map @{ $_->prereqs }, @{ $t->rules } ) {
-                $self->{$key}{$dep} = 1;
-            }
-        }
+  my $self = shift;
+  foreach my $key (qw(SUFFIXES PHONY PRECIOUS PARALLEL)) {
+    delete $self->{Depend}{ '.' . $key };
+    my $t = delete $self->{Dot}{ '.' . $key };
+    if ( defined $t ) {
+      $self->{$key} = {};
+      foreach my $dep (map @{ $_->prereqs }, @{ $t->rules }) {
+        $self->{$key}{$dep} = 1;
+      }
     }
-    return;
+  }
+  return;
 }
 
 sub find_makefile {
@@ -664,14 +664,14 @@ sub as_graph {
 }
 
 sub apply {
-    my ( $self, $method, @args ) = @_;
-    $self->NextPass;
-    my ( $vars, $targets ) = parse_args(@args);
-    $self->set_var(@$_) for @$vars;
-    $targets = [ $self->{Vars}{'.DEFAULT_GOAL'} ] unless @$targets;
-    my @bad_targets = grep !$self->{Depend}{$_}, @$targets;
-    die "Cannot '$method' (@args) - no target @bad_targets" if @bad_targets;
-    return map $self->target($_)->recurse($method), @$targets;
+  my ($self, $method, @args) = @_;
+  $self->NextPass;
+  my ($vars, $targets) = parse_args(@args);
+  $self->set_var(@$_) for @$vars;
+  $targets = [ $self->{Vars}{'.DEFAULT_GOAL'} ] unless @$targets;
+  my @bad_targets = grep !$self->{Depend}{$_}, @$targets;
+  die "Cannot '$method' (@args) - no target @bad_targets" if @bad_targets;
+  map $self->target($_)->recurse($method), @$targets;
 }
 
 # Spew a shell script to perfom the 'make' e.g. make -n
