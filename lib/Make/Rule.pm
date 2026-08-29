@@ -28,7 +28,7 @@ sub out_of_date {
     my ( $self, $target ) = @_;
     my $info  = $target->Info;
     my @dep   = ();
-    my $tdate = $target->date;
+    my $tdate = $info->date($target->Name);
     my $count = 0;
     foreach my $dep ( @{ $self->prereqs } ) {
         my $date = $info->date($dep);

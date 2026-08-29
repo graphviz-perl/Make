@@ -22,12 +22,6 @@ sub new {
   }, $class;
 }
 
-sub date {
-    my $self = shift;
-    my $info = $self->Info;
-    return $info->date( $self->Name );
-}
-
 sub has_recipe {
   my ($self) = @_;
   return $self->{HAS_RECIPE} if defined $self->{HAS_RECIPE};
