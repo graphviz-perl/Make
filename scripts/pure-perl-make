@@ -7,11 +7,9 @@ use Make;
 
 my (%opt, $redundancy);
 if (!GetOptions(
-    ## no critic (BuiltinFunctions::RequireBlockMap)
     (map +("$_!" => \$opt{$_}), qw(D g n p)),
     (map +("$_=s" => \$opt{$_}), qw(f C)),
     (map +("$_=i" => \$opt{$_}), qw(j)),
-    ## use critic
     'analyse-redundancy!' => \$redundancy,
 )) {
     require Pod::Usage;
@@ -37,7 +35,6 @@ if ( $opt{D} ) {
 } elsif ( $redundancy ) {
     my $g = $info->as_graph(no_rules => 1);
     my $tcg = $g->transitive_closure(path_count => 1);
-    ## no critic (BuiltinFunctions::RequireBlockGrep BuiltinFunctions::RequireBlockMap)
     my @r = grep $tcg->path_length(@$_) > 1, $g->edges;
     if (!@r) {
         print "No redundant rules found\n";
@@ -66,28 +63,23 @@ if ( $opt{D} ) {
             }
         }
     }
-    ## use critic
 } else {
     $info->Make(@ARGV);
 }
 
 sub make_recipe_tuples {
-    my ($g, $e) = @_;
-    ## no critic (BuiltinFunctions::RequireBlockGrep BuiltinFunctions::RequireBlockMap)
-    return map [
-        "$e->[0]:$_", $g->get_edge_attribute_by_id(@$e, $_, 'recipe_raw')
-    ], $g->get_multiedge_ids(@$e);
-    ## use critic
+  my ($g, $e) = @_;
+  map [
+    "$e->[0]:$_", $g->get_edge_attribute_by_id(@$e, $_, 'recipe_raw')
+  ], $g->get_multiedge_ids(@$e);
 }
 
 sub print_recipe_tuple {
-    my ($t, $indent) = @_;
-    ## no critic (BuiltinFunctions::RequireBlockGrep BuiltinFunctions::RequireBlockMap)
-    return join '', map "$_\n",
-        (" " x $indent)."Recipe $t->[0]:",
-        map { my $t = $_; $t =~ s/^/\t/gm; $t } @{ $t->[1] },
-        ;
-    ## use critic
+  my ($t, $indent) = @_;
+  join '', map "$_\n",
+    (" " x $indent)."Recipe $t->[0]:",
+    map s/^/\t/gmr, @{ $t->[1] },
+    ;
 }
 
 =head1 NAME
