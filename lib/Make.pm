@@ -557,19 +557,19 @@ sub parse_args {
 }
 
 sub _rmf_search_rule {
-    my ( $rule, $target_obj, $target, $rule_no, $rmfs ) = @_;
-    my @found;
-    my $line = -1;
-    for my $cmd ( $rule->exp_recipe($target_obj) ) {
-        $line++;
-        my @rec_vars;
-        for my $rf (@$rmfs) {
-            last if @rec_vars = $rf->($cmd);
-        }
-        next unless @rec_vars;
-        push @found, [ $target, $rule_no, $line, @rec_vars ];
+  my ($self, $rule, $target_obj, $target, $rule_no, $rmfs) = @_;
+  my @found;
+  my $line = -1;
+  for my $cmd ($rule->exp_recipe($target_obj, $self)) {
+    $line++;
+    my @rec_vars;
+    for my $rf (@$rmfs) {
+      last if @rec_vars = $rf->($cmd);
     }
-    return @found;
+    next unless @rec_vars;
+    push @found, [ $target, $rule_no, $line, @rec_vars ];
+  }
+  return @found;
 }
 
 sub find_recursive_makes {
@@ -579,7 +579,7 @@ sub find_recursive_makes {
     for my $target ( sort $self->targets ) {
         my $target_obj = $self->target($target);
         my $rule_no    = 0;
-        push @found, map _rmf_search_rule( $_, $target_obj, $target, $rule_no++, $rmfs ), @{ $target_obj->rules($self->phony($target), $self) };
+        push @found, map $self->_rmf_search_rule($_, $target_obj, $target, $rule_no++, $rmfs), @{ $target_obj->rules($self->phony($target), $self) };
     }
     return @found;
 }
@@ -630,7 +630,7 @@ sub as_graph {
                 }
             }
             next if !$recursive_make;
-            for my $t ( _rmf_search_rule( $rule, $target_obj, $target, $rule_no, $rmfs ) ) {
+            for my $t ($self->_rmf_search_rule($rule, $target_obj, $target, $rule_no, $rmfs)) {
                 my ( undef, $rule_index, $line, $dir, $makefile, $vars, $targets ) = @$t;
                 my $from           = $no_rules ? $target : name_encode( [ 'rule', $target, $rule_index ] );
                 my $indir_makefile = $self->find_makefile( $makefile, $dir );

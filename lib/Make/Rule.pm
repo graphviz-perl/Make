@@ -54,11 +54,11 @@ sub auto_vars {
 
 # - May need vpath processing
 sub exp_recipe {
-    my ( $self, $target ) = @_;
-    my $info      = $target->Info;
-    my @subs_args = ( $info->function_packages, [ $self->auto_vars($target), $info->vars, \%ENV ] );
-    my @cmd = map Make::subsvars( $_, @subs_args ), @{ $self->recipe };
-    return (wantarray) ? @cmd : \@cmd;
+  my ($self, $target, $info) = @_;
+  confess "info not given" if !defined $info;
+  my @subs_args = ( $info->function_packages, [ $self->auto_vars($target), $info->vars, \%ENV ] );
+  my @cmd = map Make::subsvars( $_, @subs_args ), @{ $self->recipe };
+  wantarray ? @cmd : \@cmd;
 }
 
 sub new {
@@ -88,7 +88,7 @@ sub Make {
   my ($self, $target, $info) = @_;
   confess "info not given" if !defined $info;
   return unless ( $self->out_of_date($target, $info) );
-  [ $target->Name, $self->exp_recipe($target) ];
+  [ $target->Name, $self->exp_recipe($target, $info) ];
 }
 
 #
