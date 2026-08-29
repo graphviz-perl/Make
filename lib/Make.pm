@@ -683,7 +683,7 @@ sub recurse {
   DEBUG and print STDERR "Build $target\n";
   foreach my $rule (@{ $target_obj->rules($self->phony($target), $self) }) {
     push @results, map $self->recurse($method, $_), @{ $rule->prereqs };
-    push @results, $rule->$method($target_obj);
+    push @results, $rule->$method($target_obj, $self);
   }
   @results;
 }

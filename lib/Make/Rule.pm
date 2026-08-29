@@ -2,7 +2,7 @@ package Make::Rule;
 
 use strict;
 use warnings;
-use Carp;
+use Carp qw(confess);
 use Make::Rule::Vars;
 use constant DEBUG => $ENV{MAKE_DEBUG};
 
@@ -25,24 +25,24 @@ sub recipe_raw {
 # In scalar context - boolean value of 'do we need to apply the rule'
 # In list context the things we are out-of-date with e.g. magic $? variable
 sub out_of_date {
-    my ( $self, $target ) = @_;
-    my $info  = $target->Info;
-    my @dep   = ();
-    my $tdate = $info->date($target->Name);
-    my $count = 0;
-    foreach my $dep ( @{ $self->prereqs } ) {
-        my $date = $info->date($dep);
-        $count++;
-        if ( !defined($date) || !defined($tdate) || $date > $tdate ) {
-            DEBUG and print STDERR $target->Name . " outdated by " . $dep . "\n";
-            return 1 unless wantarray;
-            push( @dep, $dep );
-        }
+  my ($self, $target, $info) = @_;
+  confess "info not given" if !defined $info;
+  my @dep   = ();
+  my $tdate = $info->date($target->Name);
+  my $count = 0;
+  foreach my $dep ( @{ $self->prereqs } ) {
+    my $date = $info->date($dep);
+    $count++;
+    if ( !defined($date) || !defined($tdate) || $date > $tdate ) {
+      DEBUG and print STDERR $target->Name . " outdated by " . $dep . "\n";
+      return 1 unless wantarray;
+      push( @dep, $dep );
     }
-    return @dep if wantarray;
+  }
+  return @dep if wantarray;
 
-    # Note special case of no prerequisites means it is always  out-of-date!
-    return !$count;
+  # Note special case of no prerequisites means it is always  out-of-date!
+  !$count;
 }
 
 sub auto_vars {
@@ -85,9 +85,10 @@ sub kind {
 }
 
 sub Make {
-    my ( $self, $target ) = @_;
-    return unless ( $self->out_of_date($target) );
-    return [ $target->Name, $self->exp_recipe($target) ];
+  my ($self, $target, $info) = @_;
+  confess "info not given" if !defined $info;
+  return unless ( $self->out_of_date($target, $info) );
+  [ $target->Name, $self->exp_recipe($target) ];
 }
 
 #
@@ -128,7 +129,7 @@ Make::Rule - a rule with prerequisites and recipe
     my @cmds = @{ $rule->recipe };
     my @expanded_cmds = @{ $rule->exp_recipe($target) }; # vars expanded
     my @raw_cmds = @{ $rule->recipe_raw }; # with any \ still on line-ends
-    my @ood = $rule->out_of_date($target);
+    my @ood = $rule->out_of_date($target, $make);
     my $vars = $rule->auto_vars($target); # tied hash-ref
 
 =head1 DESCRIPTION
