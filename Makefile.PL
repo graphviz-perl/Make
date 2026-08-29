@@ -31,12 +31,12 @@ WriteMakefile(
             },
         },
         resources => {
-            bugtracker => { web => 'https://github.com/mohawk2/Make/issues' },
+            bugtracker => { web => 'https://github.com/graphviz-perl/Make/issues' },
             homepage   => 'https://metacpan.org/pod/Make',
             repository => {
                 type => 'git',
-                url  => 'https://github.com/mohawk2/Make.git',
-                web  => 'https://github.com/mohawk2/Make',
+                url  => 'https://github.com/graphviz-perl/Make.git',
+                web  => 'https://github.com/graphviz-perl/Make',
             },
             x_IRC => 'irc://irc.perl.org/#perl'
         },
