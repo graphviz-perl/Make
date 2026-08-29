@@ -9,7 +9,8 @@ use constant DEBUG => $ENV{MAKE_DEBUG};
 our $VERSION = '2.011';
 
 sub prereqs {
-    return shift->{PREREQS};
+    my ($self) = @_;
+    $self->{PREREQS} || [];
 }
 
 sub recipe {
@@ -70,7 +71,7 @@ sub new {
         if 'ARRAY' ne ref $recipe_raw;
     return bless {
         KIND       => $kind,         # : or ::
-        PREREQS    => $prereqs,      # right hand args
+        !@$prereqs ? () : (PREREQS => $prereqs), # right hand args
         !@$recipe ? () : (RECIPE => $recipe),
         !@$recipe_raw ? () : (RECIPE_RAW => $recipe_raw),
     }, $class;
