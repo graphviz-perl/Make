@@ -231,10 +231,10 @@ sub evaluate_macro {
     if ( $key =~ /^([\w._]+|\S)(?::(.*))?$/ ) {
         my ( $var, $subst ) = ( $1, $2 );
         foreach my $hash (@$vars_search_list) {
-            last if defined( $value = $hash->{$var} );
+            last if defined($value = $hash->{$var});
         }
-        $value = '' if !defined $value;
-        if ( defined $subst ) {
+        $value //= '';
+        if (defined $subst) {
             my @parts = split /=/, $subst, 2;
             die "Syntax error: expected form x=y in '$subst'" if @parts != 2;
             $value = join ' ', Make::Functions::patsubst( $fsmap, @parts, $value );
@@ -278,7 +278,7 @@ sub subsvars {
             $found = substr $remaining, 0, 1, '';
         }
         my $value = evaluate_macro( $found, $function_packages, $vars_search_list, $fsmap );
-        if ( !defined $value ) {
+        if (!defined $value) {
             warn "Cannot evaluate '$found'\n";
             $value = '';
         }
@@ -363,7 +363,7 @@ sub process_ast_bit {
             } or warn $@ if $opt ne '-';
         }
     } elsif ( $type eq 'var' ) {
-        my ($var, $val) = ($args[0], defined $args[1] ? $args[1] : "");
+        my ($var, $val) = ($args[0], $args[1] // "");
         $self->set_var($self->expand($var), $val);
     } elsif ( $type eq 'vpath' ) {
         my ( $pattern, @vpath ) = @args;
@@ -393,7 +393,7 @@ sub parse_makefile {
     my $raw;
     ( local $_, $raw ) = get_full_line($fh);
     while (1) {
-        last unless ( defined $_ );
+        last unless defined $_;
         s/^\s+//;
         next if !length;
         if (/^(-?)include\s+(.*)$/) {

@@ -23,8 +23,7 @@ sub rule_type { $_[0]{RULE_TYPE} || ':' }
 
 sub has_recipe {
   my ($self) = @_;
-  return $self->{HAS_RECIPE} if defined $self->{HAS_RECIPE};
-  $self->{HAS_RECIPE} = grep @{ $_->recipe }, @{ Make::maybe_return($self, 'RULE') };
+  $self->{HAS_RECIPE} //= grep @{ $_->recipe }, @{ Make::maybe_return($self, 'RULE') };
 }
 
 sub rules {
