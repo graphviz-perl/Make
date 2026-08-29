@@ -80,16 +80,15 @@ sub suffixes {
 }
 
 sub target {
-    my ( $self, $target ) = @_;
-    unless ( exists $self->{Depend}{$target} ) {
-        my $t = $self->{Depend}{$target} = Make::Target->new( $target, $self );
-        if ( $target =~ /%/ ) {
-            $self->{Pattern}{$target} = $t;
-        } elsif ( $target =~ /^\./ ) {
-            $self->{Dot}{$target} = $t;
-        }
-    }
-    return $self->{Depend}{$target};
+  my ($self, $target) = @_;
+  return $self->{Depend}{$target} if exists $self->{Depend}{$target};
+  my $t = $self->{Depend}{$target} = Make::Target->new($target);
+  if ($target =~ /%/) {
+    $self->{Pattern}{$target} = $t;
+  } elsif ($target =~ /^\./) {
+    $self->{Dot}{$target} = $t;
+  }
+  $t;
 }
 
 sub has_target {
