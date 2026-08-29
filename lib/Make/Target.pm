@@ -29,10 +29,11 @@ sub has_recipe {
 }
 
 sub rules {
-  my ($self, $is_phony) = @_;
+  my ($self, $is_phony, $info) = @_;
   confess "is_phony not given" if !defined $is_phony;
+  confess "info not given" if !defined $info;
   if ( !$is_phony && !$self->has_recipe ) {
-    my $rule = $self->Info->patrule( $self->Name, $self->{RULE_TYPE} || ':' );
+    my $rule = $info->patrule($self->Name, $self->{RULE_TYPE} || ':');
     DEBUG and print STDERR "Implicit rule (", $self->Name, "): @{ $rule ? $rule->prereqs : ['none'] }\n";
     $self->add_rule($rule) if $rule;
   }
