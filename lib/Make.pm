@@ -155,8 +155,9 @@ sub dotrules {
       delete $self->{Depend}{ $f . $t };
       next unless my $r = delete $Dot->{ $f . $t };
       DEBUG and print STDERR "Pattern %$t : %$f\n";
-      my $target   = $self->target( '%' . $t );
-      my $thisrule = $r->rules($self->phony($r->Name), $self)->[-1]; # last-specified
+      my $name = "%$t";
+      my $target = $self->target($name);
+      my $thisrule = $r->rules($self->phony($name), $self)->[-1]; # last-specified
       die "Failed on pattern rule for '$f$t', no prereqs allowed"
         if @{ $thisrule->prereqs };
       my $rule = Make::Rule->new( '::', [ '%' . $f ], $thisrule->recipe, $thisrule->recipe_raw );
@@ -190,7 +191,7 @@ sub patrule {
         next unless defined( my $Pat = patmatch( $key, $target ) );
         DEBUG and print STDERR " Pattern $key matched ($Pat)\n";
         my $t = $self->{Pattern}{$key};
-        foreach my $rule ( @{ $t->rules($self->phony($t->Name), $self) } ) {
+        foreach my $rule ( @{ $t->rules($self->phony($key), $self) } ) {
             my @dep = @{ $rule->prereqs };
             DEBUG and print STDERR "  Try rule : @dep\n";
             next unless @dep;
@@ -435,11 +436,12 @@ sub parse_makefile {
 sub pseudos {
   my $self = shift;
   foreach my $key (qw(SUFFIXES PHONY PRECIOUS PARALLEL)) {
-    delete $self->{Depend}{ '.' . $key };
-    my $t = delete $self->{Dot}{ '.' . $key };
-    if ( defined $t ) {
+    my $name = ".$key";
+    delete $self->{Depend}{$name};
+    my $t = delete $self->{Dot}{$name};
+    if (defined $t) {
       $self->{$key} = {};
-      foreach my $dep (map @{ $_->prereqs }, @{ $t->rules($self->phony($t->Name), $self) }) {
+      foreach my $dep (map @{ $_->prereqs }, @{ $t->rules($self->phony($name), $self) }) {
         $self->{$key}{$dep} = 1;
       }
     }
@@ -749,7 +751,7 @@ Make - Pure-Perl implementation of a somewhat GNU-like make.
     my $targ = $make->target($name);
     my $rule = Make::Rule->new(':', \@prereqs, \@recipe, \@recipe_raw);
     $targ->add_rule($rule);
-    my @rules = @{ $targ->rules($make->phony($targ->Name), $make) };
+    my @rules = @{ $targ->rules($make->phony($name), $make) };
 
     my @prereqs  = @{ $rule->prereqs };
     my @commands = @{ $rule->recipe };
