@@ -11,13 +11,13 @@ our $VERSION = '2.011';
 # the left hand side of a rule i.e. for each thing that can be made.
 sub new {
     my ( $class, $name, $info ) = @_;
+    # member: HAS_RECIPE: undef, boolean
+    # member: RULE_TYPE: undef, :, ::
     return bless {
-        NAME       => $name,    # name of thing
-        MAKEFILE   => $info,    # Makefile context
-        RULES      => [],
-        RULE_TYPE  => undef,    # undef, :, ::
-        HAS_RECIPE => undef,    # undef, boolean
-        Pass       => 0,        # Used to determine if 'done' this sweep
+        NAME => $name, # name of thing
+        MAKEFILE => $info, # Makefile context
+        RULES => [],
+        Pass => 0, # Used to determine if 'done' this sweep
     }, $class;
 }
 
@@ -54,7 +54,7 @@ sub add_rule {
     my $kind     = $self->{RULE_TYPE} ||= $new_kind;
     die "Target '$self->{NAME}' had '$kind' but tried to add '$new_kind'"
         if $kind ne $new_kind;
-    $self->{HAS_RECIPE} ||= undef;    # reset if was no or unknown
+    delete $self->{HAS_RECIPE}; # reset if was no or unknown
     return push @{ shift->{RULES} }, $rule;
 }
 
