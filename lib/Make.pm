@@ -157,7 +157,7 @@ sub dotrules {
       DEBUG and print STDERR "Pattern %$t : %$f\n";
       my $name = "%$t";
       my $target = $self->target($name);
-      my $thisrule = $r->rules($self->phony($name), $self)->[-1]; # last-specified
+      my $thisrule = $r->rules($self->phony($name), $name, $self)->[-1]; # last-specified
       die "Failed on pattern rule for '$f$t', no prereqs allowed"
         if @{ $thisrule->prereqs };
       my $rule = Make::Rule->new( '::', [ '%' . $f ], $thisrule->recipe, $thisrule->recipe_raw );
@@ -191,7 +191,7 @@ sub patrule {
         next unless defined( my $Pat = patmatch( $key, $target ) );
         DEBUG and print STDERR " Pattern $key matched ($Pat)\n";
         my $t = $self->{Pattern}{$key};
-        foreach my $rule ( @{ $t->rules($self->phony($key), $self) } ) {
+        foreach my $rule ( @{ $t->rules($self->phony($key), $key, $self) } ) {
             my @dep = @{ $rule->prereqs };
             DEBUG and print STDERR "  Try rule : @dep\n";
             next unless @dep;
@@ -441,7 +441,7 @@ sub pseudos {
     my $t = delete $self->{Dot}{$name};
     if (defined $t) {
       $self->{$key} = {};
-      foreach my $dep (map @{ $_->prereqs }, @{ $t->rules($self->phony($name), $self) }) {
+      foreach my $dep (map @{ $_->prereqs }, @{ $t->rules($self->phony($name), $name, $self) }) {
         $self->{$key}{$dep} = 1;
       }
     }
@@ -572,7 +572,7 @@ sub find_recursive_makes {
     for my $target ( sort $self->targets ) {
         my $target_obj = $self->target($target);
         my $rule_no    = 0;
-        push @found, map $self->_rmf_search_rule($_, $target_obj, $target, $rule_no++, $rmfs), @{ $target_obj->rules($self->phony($target), $self) };
+        push @found, map $self->_rmf_search_rule($_, $target_obj, $target, $rule_no++, $rmfs), @{ $target_obj->rules($self->phony($target), $target, $self) };
     }
     return @found;
 }
@@ -597,7 +597,7 @@ sub as_graph {
         $g->add_vertex($node_name);
         my $rule_no    = -1;
         my $target_obj = $self->target($target);
-        for my $rule ( @{ $target_obj->rules($self->phony($target), $self) } ) {
+        for my $rule ( @{ $target_obj->rules($self->phony($target), $target, $self) } ) {
             $rule_no++;
             my $recipe      = $rule->recipe;
             my $recipe_hash = { recipe => $recipe, recipe_raw => $rule->recipe_raw };
@@ -674,7 +674,7 @@ sub recurse {
   return if $target_obj->done($self->pass);
   my @results;
   DEBUG and print STDERR "Build $target\n";
-  foreach my $rule (@{ $target_obj->rules($self->phony($target), $self) }) {
+  foreach my $rule (@{ $target_obj->rules($self->phony($target), $target, $self) }) {
     push @results, map $self->recurse($method, $_), @{ $rule->prereqs };
     push @results, $rule->$method($target_obj, $target, $self);
   }
@@ -750,7 +750,7 @@ Make - Pure-Perl implementation of a somewhat GNU-like make.
     my $targ = $make->target($name);
     my $rule = Make::Rule->new(':', \@prereqs, \@recipe, \@recipe_raw);
     $targ->add_rule($rule);
-    my @rules = @{ $targ->rules($make->phony($name), $make) };
+    my @rules = @{ $targ->rules($make->phony($name), $name, $make) };
 
     my @prereqs  = @{ $rule->prereqs };
     my @commands = @{ $rule->recipe };
@@ -1030,7 +1030,7 @@ C<MAKE_DEBUG> to a true value;
 
 More attention needs to be given to using the package to I<write> makefiles.
 
-The rules for matching 'dot rules' e.g. .c.o   and/or pattern rules e.g. %.o : %.c
+The rules for matching 'dot rules' e.g. .c.o and/or pattern rules e.g. %.o : %.c
 are suspect. For example give a choice of .xs.o vs .xs.c + .c.o behaviour
 seems a little odd.
 
