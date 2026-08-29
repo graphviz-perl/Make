@@ -43,10 +43,12 @@ sub _find_recmake_cd {
 
 sub maybe_store {
   my ($key_s, $value) = @_;
+  return ($key_s => $value->[0]) if @$value == 1;
   !@$value ? () : ($key_s.'S' => $value);
 }
 sub maybe_return {
   my ($self, $key_s) = @_;
+  return [$self->{$key_s}] if exists $self->{$key_s};
   $self->{$key_s.'S'} || [];
 }
 
