@@ -61,19 +61,21 @@ sub exp_recipe {
 }
 
 sub new {
-    my ( $class, $kind, $prereqs, $recipe, $recipe_raw ) = @_;
-    confess "prereqs $prereqs are not an array reference"
-        if 'ARRAY' ne ref $prereqs;
-    confess "recipe $recipe not an array reference"
-        if 'ARRAY' ne ref $recipe;
-    confess "recipe_raw $recipe_raw not an array reference"
-        if 'ARRAY' ne ref $recipe_raw;
-    return bless {
-      KIND => $kind, # : or ::
-      Make::maybe_store(PREREQ => $prereqs), # right hand args
-      Make::maybe_store(RECIPE => $recipe),
-      Make::maybe_store(RAW_RECIPE => $recipe_raw),
-    }, $class;
+  my ( $class, $kind, $prereqs, $recipe, $recipe_raw ) = @_;
+  confess "prereqs $prereqs are not an array reference"
+    if 'ARRAY' ne ref $prereqs;
+  confess "recipe $recipe not an array reference"
+    if 'ARRAY' ne ref $recipe;
+  confess "recipe_raw $recipe_raw not an array reference"
+    if 'ARRAY' ne ref $recipe_raw;
+  confess "recipe (@{[0+@$recipe]}) and recipe_raw (@{[0+@$recipe]}) have different number of elements"
+    if @$recipe != @$recipe_raw;
+  bless {
+    KIND => $kind, # : or ::
+    Make::maybe_store(PREREQ => $prereqs), # right hand args
+    Make::maybe_store(RECIPE => $recipe),
+    Make::maybe_store(RAW_RECIPE => $recipe_raw),
+  }, $class;
 }
 
 sub kind {
