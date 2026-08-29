@@ -28,15 +28,7 @@ sub has_recipe {
 }
 
 sub rules {
-  my ($self, $is_phony, $name, $info) = @_;
-  confess "is_phony not given" if !defined $is_phony;
-  confess "info not given" if !defined $info;
-  if ( !$is_phony && !$self->has_recipe ) {
-    my $rule = $info->patrule($name, $self->rule_type);
-    DEBUG and print STDERR "Implicit rule ($name): @{ $rule ? $rule->prereqs : ['none'] }\n";
-    $self->add_rule($rule, $name) if $rule;
-  }
-  Make::maybe_return($self, 'RULE');
+  Make::maybe_return($_[0], 'RULE');
 }
 
 sub add_rule {
