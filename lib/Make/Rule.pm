@@ -25,16 +25,16 @@ sub recipe_raw {
 # In scalar context - boolean value of 'do we need to apply the rule'
 # In list context the things we are out-of-date with e.g. magic $? variable
 sub out_of_date {
-  my ($self, $target, $info) = @_;
+  my ($self, $target, $name, $info) = @_;
   confess "info not given" if !defined $info;
   my @dep   = ();
-  my $tdate = $info->date($target->Name);
+  my $tdate = $info->date($name);
   my $count = 0;
   foreach my $dep ( @{ $self->prereqs } ) {
     my $date = $info->date($dep);
     $count++;
-    if ( !defined($date) || !defined($tdate) || $date > $tdate ) {
-      DEBUG and print STDERR $target->Name . " outdated by " . $dep . "\n";
+    if (!defined($date) || !defined($tdate) || $date > $tdate) {
+      DEBUG and print STDERR "$name outdated by $dep\n";
       return 1 unless wantarray;
       push( @dep, $dep );
     }
@@ -45,17 +45,17 @@ sub out_of_date {
 }
 
 sub auto_vars {
-  my ($self, $target, $info) = @_;
+  my ($self, $target, $name, $info) = @_;
   confess "info not given" if !defined $info;
-  tie my %var, 'Make::Rule::Vars', $self, $info, $target->Name, $target;
+  tie my %var, 'Make::Rule::Vars', $self, $info, $name, $target;
   return \%var;
 }
 
 # - May need vpath processing
 sub exp_recipe {
-  my ($self, $target, $info) = @_;
+  my ($self, $target, $name, $info) = @_;
   confess "info not given" if !defined $info;
-  my @subs_args = ($info->function_packages, [ $self->auto_vars($target, $info), $info->vars, \%ENV ]);
+  my @subs_args = ($info->function_packages, [ $self->auto_vars($target, $name, $info), $info->vars, \%ENV ]);
   my @cmd = map Make::subsvars( $_, @subs_args ), @{ $self->recipe };
   wantarray ? @cmd : \@cmd;
 }
@@ -86,8 +86,8 @@ sub kind {
 sub Make {
   my ($self, $target, $name, $info) = @_;
   confess "info not given" if !defined $info;
-  return if !$self->out_of_date($target, $info);
-  [ $name, $self->exp_recipe($target, $info) ];
+  return if !$self->out_of_date($target, $name, $info);
+  [ $name, $self->exp_recipe($target, $name, $info) ];
 }
 
 #
@@ -102,7 +102,7 @@ sub Print {
   print "$name $self->{KIND} ";
   print " \\\n   $_" for $self->prereqs;
   print "\n";
-  my @cmd = $self->exp_recipe($target, $info);
+  my @cmd = $self->exp_recipe($target, $name, $info);
   if (@cmd) {
     print "\t$_\n" for @cmd;
   } else {
@@ -122,10 +122,10 @@ Make::Rule - a rule with prerequisites and recipe
     my @name_commands = $rule->Make($target);
     my @deps = @{ $rule->prereqs };
     my @cmds = @{ $rule->recipe };
-    my @expanded_cmds = @{ $rule->exp_recipe($target, $make) }; # vars expanded
+    my @expanded_cmds = @{ $rule->exp_recipe($target, $name, $make) }; # vars expanded
     my @raw_cmds = @{ $rule->recipe_raw }; # with any \ still on line-ends
-    my @ood = $rule->out_of_date($target, $make);
-    my $vars = $rule->auto_vars($target, $make); # tied hash-ref
+    my @ood = $rule->out_of_date($target, $name, $make);
+    my $vars = $rule->auto_vars($target, $name, $make); # tied hash-ref
 
 =head1 DESCRIPTION
 

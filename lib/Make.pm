@@ -553,7 +553,7 @@ sub _rmf_search_rule {
   my ($self, $rule, $target_obj, $target, $rule_no, $rmfs) = @_;
   my @found;
   my $line = -1;
-  for my $cmd ($rule->exp_recipe($target_obj, $self)) {
+  for my $cmd ($rule->exp_recipe($target_obj, $target, $self)) {
     $line++;
     my @rec_vars;
     for my $rf (@$rmfs) {
