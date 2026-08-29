@@ -51,6 +51,15 @@ sub maybe_return {
   return [$self->{$key_s}] if exists $self->{$key_s};
   $self->{$key_s.'S'} || [];
 }
+sub maybe_add {
+  my ($self, $key_s, $value) = @_;
+  my $plural = $key_s.'S';
+  $self->{$plural} = [delete $self->{$key_s}, $value], return
+    if exists $self->{$key_s};
+  $self->{$key_s} = $value, return
+    if !exists $self->{$plural};
+  push @{ $self->{$plural} }, $value;
+}
 
 sub load_modules {
     for (@_) {

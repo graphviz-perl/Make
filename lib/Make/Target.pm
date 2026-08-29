@@ -13,10 +13,10 @@ sub new {
     my ( $class, $name, $info ) = @_;
     # member: HAS_RECIPE: undef, boolean
     # member: RULE_TYPE: undef, :, ::
+    # member: RULE | RULES
     return bless {
         NAME => $name, # name of thing
         MAKEFILE => $info, # Makefile context
-        RULES => [],
         Pass => 0, # Used to determine if 'done' this sweep
     }, $class;
 }
@@ -33,9 +33,9 @@ sub phony {
 }
 
 sub has_recipe {
-    my ($self) = @_;
-    return $self->{HAS_RECIPE} if defined $self->{HAS_RECIPE};
-    return $self->{HAS_RECIPE} = grep @{ $_->recipe }, @{ $self->{RULES} };
+  my ($self) = @_;
+  return $self->{HAS_RECIPE} if defined $self->{HAS_RECIPE};
+  $self->{HAS_RECIPE} = grep @{ $_->recipe }, @{ Make::maybe_return($self, 'RULE') };
 }
 
 sub rules {
@@ -45,17 +45,17 @@ sub rules {
         DEBUG and print STDERR "Implicit rule (", $self->Name, "): @{ $rule ? $rule->prereqs : ['none'] }\n";
         $self->add_rule($rule) if $rule;
     }
-    return $self->{RULES};
+    Make::maybe_return($self, 'RULE');
 }
 
 sub add_rule {
-    my ( $self, $rule ) = @_;
-    my $new_kind = $rule->kind;
-    my $kind     = $self->{RULE_TYPE} ||= $new_kind;
-    die "Target '$self->{NAME}' had '$kind' but tried to add '$new_kind'"
-        if $kind ne $new_kind;
-    delete $self->{HAS_RECIPE}; # reset if was no or unknown
-    return push @{ shift->{RULES} }, $rule;
+  my ( $self, $rule ) = @_;
+  my $new_kind = $rule->kind;
+  my $kind     = $self->{RULE_TYPE} ||= $new_kind;
+  die "Target '$self->{NAME}' had '$kind' but tried to add '$new_kind'"
+    if $kind ne $new_kind;
+  delete $self->{HAS_RECIPE}; # reset if was no or unknown
+  Make::maybe_add($self, 'RULE', $rule);
 }
 
 sub Name {
