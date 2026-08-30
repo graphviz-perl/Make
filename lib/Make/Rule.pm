@@ -84,7 +84,7 @@ sub kind {
 }
 
 sub Make {
-  my ($self, $target, $name, $info) = @_;
+  my ($self, $name, $info) = @_;
   confess "info not given" if !defined $info;
   return if !$self->out_of_date($name, $info);
   [ $name, $self->exp_recipe($name, $info) ];
@@ -97,7 +97,7 @@ sub Make {
 # - may be useful for writing makefiles from MakeMaker too...
 #
 sub Print {
-  my ($self, $target, $name, $info) = @_;
+  my ($self, $name, $info) = @_;
   confess "info not given" if !defined $info;
   print "$name $self->{KIND} ";
   print " \\\n   $_" for $self->prereqs;
@@ -106,7 +106,7 @@ sub Print {
   if (@cmd) {
     print "\t$_\n" for @cmd;
   } else {
-    print STDERR "No recipe for $name\n" unless $self->target->phony;
+    print STDERR "No recipe for $name\n" unless $info->phony($name);
   }
   print "\n";
   ();
@@ -119,7 +119,7 @@ Make::Rule - a rule with prerequisites and recipe
 =head1 SYNOPSIS
 
     my $rule = Make::Rule->new( $kind, \@prereqs, \@recipe, \@recipe_raw );
-    my @name_commands = $rule->Make($target);
+    my @name_commands = $rule->Make($target, $make);
     my @deps = @{ $rule->prereqs };
     my @cmds = @{ $rule->recipe };
     my @expanded_cmds = @{ $rule->exp_recipe($name, $make) }; # vars expanded

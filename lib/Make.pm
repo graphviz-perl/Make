@@ -670,9 +670,9 @@ sub recurse {
   return if $target_obj->done($self->pass);
   my @results;
   DEBUG and print STDERR "Build $target\n";
-  foreach my $rule (@{ $self->rules($target_obj, $target) }) {
+  for my $rule (@{ $self->rules($target_obj, $target) }) {
     push @results, map $self->recurse($method, $_), @{ $rule->prereqs };
-    push @results, $rule->$method($target_obj, $target, $self);
+    push @results, $rule->$method($target, $self);
   }
   @results;
 }
