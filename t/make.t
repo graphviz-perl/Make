@@ -12,7 +12,7 @@ my @LINES = (
     [ "all : one \\\n\t two\n",    [ 'all : one two', "all : one \\\n two" ] ],
 );
 for my $l (@LINES) {
-    my ( $in, $expected ) = @$l;
+    my ($in, $expected) = @$l;
     open my $fh, '+<', \$in or die "open: $!";
     is_deeply [ Make::get_full_line($fh) ], $expected;
 }
@@ -41,7 +41,7 @@ my @ASTs = (
     [ "\$(V)MS = -s\n",                 [ [ 'var',  '$(V)MS', '-s', ] ], ],
 );
 for my $l (@ASTs) {
-    my ( $in, $expected ) = @$l;
+    my ($in, $expected) = @$l;
     open my $fh, '+<', \$in or die "open: $!";
     my $got = Make::parse_makefile($fh);
     is_deeply $got, $expected, $in or diag explain $got;
@@ -55,8 +55,8 @@ my @TOKENs = (
     [ ' a\\ b c', [ 'a b', 'c' ] ],
 );
 for my $l (@TOKENs) {
-    my ( $in, $expected, $err ) = @$l;
-    my ($got) = eval { Make::tokenize( $in, ':' ) };
+    my ($in, $expected, $err) = @$l;
+    my ($got) = eval { Make::tokenize($in, ':') };
     like $@,        $err || qr/^$/;
     is_deeply $got, $expected or diag explain $got;
 }
@@ -70,7 +70,7 @@ my $VARS      = {
     space => ' ',
     comma => ',',
 };
-my $fsmap = make_fsmap( { Changes => [ 1, 'hi' ], README => [ 1, 'there' ], NOT => [ 1, 'in' ] } );
+my $fsmap = make_fsmap({ Changes => [ 1, 'hi' ], README => [ 1, 'there' ], NOT => [ 1, 'in' ] });
 my @SUBs  = (
     [ 'none',                                 'none' ],
     [ 'this $(k1) is',                        'this k2 is' ],
@@ -94,8 +94,8 @@ my @SUBs  = (
     [ ' a ${dir $(k1)',                       undef, qr/Syntax error/ ],
 );
 for my $l (@SUBs) {
-    my ( $in, $expected, $err ) = @$l;
-    my ($got) = eval { Make::subsvars( $in, $FUNCTIONS, [$VARS], $fsmap ) };
+    my ($in, $expected, $err) = @$l;
+    my ($got) = eval { Make::subsvars($in, $FUNCTIONS, [$VARS], $fsmap) };
     like $@, $err || qr/^$/;
     is $got, $expected;
 }
@@ -108,15 +108,15 @@ my @CMDs = (
     [ '-just do it',  { line => 'just do it', can_fail => 1 } ],
 );
 for my $l (@CMDs) {
-    my ( $in, $expected, $err ) = @$l;
+    my ($in, $expected, $err) = @$l;
     my ($got) = eval { Make::parse_cmdline($in) };
     like $@,        $err || qr/^$/;
     is_deeply $got, $expected;
 }
 
-my @NAME_DATA = ( [ [], '' ], [ [qw(node a:l%l)], 'node:a%3al%25l' ], );
-is Make::name_encode( $_->[0] ),        $_->[1], "enc to $_->[1]" for @NAME_DATA;
-is_deeply Make::name_decode( $_->[1] ), $_->[0], "dec $_->[1]"    for @NAME_DATA;
+my @NAME_DATA = ([ [], '' ], [ [qw(node a:l%l)], 'node:a%3al%25l' ]);
+is Make::name_encode($_->[0]),        $_->[1], "enc to $_->[1]" for @NAME_DATA;
+is_deeply Make::name_decode($_->[1]), $_->[0], "dec $_->[1]"    for @NAME_DATA;
 
 SKIP: {
     skip '', 2 if !$ENV{AUTHOR_TESTING};    # avoid blowing up on dmake
@@ -129,13 +129,13 @@ SKIP: {
 
 {
     my $m = Make->new;
-    $m->parse( \"all: sbar sfoo\n\techo larry\n\techo howdy\n" );
+    $m->parse(\"all: sbar sfoo\n\techo larry\n\techo howdy\n");
     is $m->{Vars}{'.DEFAULT_GOAL'}, 'all';
 }
 
-my ( undef, $tempfile ) = tempfile;
+my (undef, $tempfile) = tempfile;
 my $m = Make->new;
-$m->parse( \sprintf <<'EOF', $tempfile );
+$m->parse(\sprintf <<'EOF', $tempfile);
 var = value
 tempfile = %s
 targets = other
@@ -168,21 +168,19 @@ $got = $all_rule->prereqs;
 is_deeply $got, ['other'] or diag explain $got;
 $got = $all_rule->auto_vars($all_target, 'all', $m);
 ok exists $got->{'@'}, 'Rules.Vars.EXISTS';
-is_deeply [ keys %$got ], [qw( @ * ^ ? < )] or diag explain $got;
+is_deeply [ keys %$got ], [qw(@ * ^ ? <)] or diag explain $got;
 my $ax_target = $m->target('a.x.o');
 my ($ax_rule) = @{ $m->rules($ax_target, 'a.x.o') };
 $got = $ax_rule->auto_vars($ax_target, 'a.x.o', $m);
 is $got->{'*'}, 'a.x';
 
-my $recmake_fsmap = make_fsmap(
-    {
-        Makefile                    => [ 1, "MK=make\nall: bar sany\nsany:\n\tcd subdir && \$(MK)\n\tsay hi\n" ],
-        'subdir/Makefile'           => [ 1, "all: sbar sfoo ../first\n\tcd subsubdir && make\n" ],
-        'subdir/subsubdir/Makefile' => [ 1, "all: /top/level\n\techo L3\n" ],
-    }
-);
-$m = Make->new( FSFunctionMap => $recmake_fsmap )->parse;
-my $g = $m->as_graph( no_rules => 1 );
+my $recmake_fsmap = make_fsmap({
+  Makefile => [ 1, "MK=make\nall: bar sany\nsany:\n\tcd subdir && \$(MK)\n\tsay hi\n" ],
+  'subdir/Makefile' => [ 1, "all: sbar sfoo ../first\n\tcd subsubdir && make\n" ],
+  'subdir/subsubdir/Makefile' => [ 1, "all: /top/level\n\techo L3\n" ],
+});
+$m = Make->new(FSFunctionMap => $recmake_fsmap)->parse;
+my $g = $m->as_graph(no_rules => 1);
 is_deeply_snapshot [ $g->as_hashes ], 'no_rules graph';
 
 $g = $m->as_graph;
@@ -191,14 +189,14 @@ $got = [ $m->find_recursive_makes ];
 is_deeply $got, [ [ 'sany', 0, 0, 'subdir', undef, [], [] ] ], 'find_recursive_makes'
     or diag explain $got;
 
-$g = $m->as_graph( recursive_make => 1 );
+$g = $m->as_graph(recursive_make => 1);
 is_deeply_snapshot [ $g->as_hashes ], 'recursive_make graph';
 
-$g = $m->as_graph( recursive_make => 1, no_rules => 1 );
+$g = $m->as_graph(recursive_make => 1, no_rules => 1);
 is_deeply_snapshot [ $g->as_hashes ], 'recursive_make+no_rules graph';
 
 $m = Make->new;
-$m->parse( \sprintf <<'EOF', $tempfile, $^X );
+$m->parse(\sprintf <<'EOF', $tempfile, $^X);
 space = $() $()
 tempfile = %s
 all: ; @"%s" -e "print shift().qq{\n}" "$(space)" >"$(tempfile)"
@@ -222,58 +220,58 @@ all: $(objs)
 .PHONY: all
 EOF
 my $vfs = {
-    'src/a.c'   => [ 2, 'hi' ],
-    'a.o'       => [ 1, 'yo' ],
-    'b.c'       => [ 2, 'hi' ],
-    'b.o'       => [ 1, 'yo' ],
-    GNUmakefile => [ 1, "include inc.mk\n-include not.mk\n" ],
-    'inc.mk'    => [ 1, $inc_mk ],
+  'src/a.c'   => [ 2, 'hi' ],
+  'a.o'       => [ 1, 'yo' ],
+  'b.c'       => [ 2, 'hi' ],
+  'b.o'       => [ 1, 'yo' ],
+  GNUmakefile => [ 1, "include inc.mk\n-include not.mk\n" ],
+  'inc.mk'    => [ 1, $inc_mk ],
 };
 
-for my $tuple ( [ undef, undef ], [ undef, 'subdir' ], [qw(GNUmakefile subdir)] ) {
-    my ( $mf, $prefix ) = @$tuple;
-    truncate $tempfile, 0;
-    $m = Make->new( FSFunctionMap => make_fsmap( $vfs, $prefix ), GNU => 1, InDir => $prefix );
-    $m->parse($mf);
-    $got = $m->rules($m->target('all'), 'all')->[0]->prereqs;
-    is_deeply $got, [qw(a.o b.o)] or diag explain $got;
-    $got = $m->rules($m->target('a.o'), 'a.o')->[0]->prereqs;
-    is_deeply $got, ['src/a.c'] or diag explain $got;
-    $got = [ sort $m->targets ];
-    is_deeply $got, [qw(a.o all b.o)], 'targets' or diag explain $got;
-    $m->Make('all');
-    $got = [ sort $m->targets ];
-    is_deeply $got, [qw(a.o all b.c b.o src/a.c)], 'targets after' or diag explain $got;
-    $contents = do { local $/; open my $fh, '<', $tempfile; <$fh> };
-    is $contents, "COMPILE -c -o a.o src/a.c\nCOMPILE -c -o b.o b.c\n";
+for my $tuple ([undef, undef], [undef, 'subdir'], [qw(GNUmakefile subdir)]) {
+  my ($mf, $prefix) = @$tuple;
+  truncate $tempfile, 0;
+  $m = Make->new(FSFunctionMap => make_fsmap($vfs, $prefix), GNU => 1, InDir => $prefix);
+  $m->parse($mf);
+  $got = $m->rules($m->target('all'), 'all')->[0]->prereqs;
+  is_deeply $got, [qw(a.o b.o)] or diag explain $got;
+  $got = $m->rules($m->target('a.o'), 'a.o')->[0]->prereqs;
+  is_deeply $got, ['src/a.c'] or diag explain $got;
+  $got = [ sort $m->targets ];
+  is_deeply $got, [qw(a.o all b.o)], 'targets' or diag explain $got;
+  $m->Make('all');
+  $got = [ sort $m->targets ];
+  is_deeply $got, [qw(a.o all b.c b.o src/a.c)], 'targets after' or diag explain $got;
+  $contents = do { local $/; open my $fh, '<', $tempfile; <$fh> };
+  is $contents, "COMPILE -c -o a.o src/a.c\nCOMPILE -c -o b.o b.c\n";
 }
 
 done_testing;
 
 sub make_fsmap {
-    my ( $vfs, $maybe_prefix ) = @_;
-    my %vfs_copy = map +( join( '/', grep defined, $maybe_prefix, $_ ) => $vfs->{$_} ), keys %$vfs;
-    my %fh2file_tuple;
-    return {
-        glob => sub {
-            my @results;
-            for my $subpat ( split /\s+/, $_[0] ) {
-                $subpat =~ s/\*/.*/g;    # ignore ?, [], {} for now
-                push @results, grep /^$subpat$/, sort keys %vfs_copy;
-            }
-            return @results;
-        },
-        fh_open => sub {
-            require Carp;
-            Carp::confess "open @_: No such file or directory" unless exists $vfs_copy{ $_[1] };
-            my $file_tuple = $vfs_copy{ $_[1] };
-            open my $fh, "+$_[0]", \$file_tuple->[1];
-            $fh2file_tuple{$fh} = $file_tuple;
-            return $fh;
-        },
-        fh_write      => sub { my $fh = shift; $fh2file_tuple{$fh}[0] = time; print {$fh} @_ },
-        file_readable => sub { exists $vfs_copy{ $_[0] } },
-        mtime         => sub { ( $vfs_copy{ $_[0] } || [] )->[0] },
-        is_abs        => sub { $_[0] =~ /^\// },
-    };
+  my ($vfs, $maybe_prefix) = @_;
+  my %vfs_copy = map +(join('/', grep defined, $maybe_prefix, $_) => $vfs->{$_}), keys %$vfs;
+  my %fh2file_tuple;
+  {
+    glob => sub {
+      my @results;
+      for my $subpat (split /\s+/, $_[0]) {
+        $subpat =~ s/\*/.*/g;    # ignore ?, [], {} for now
+        push @results, grep /^$subpat$/, sort keys %vfs_copy;
+      }
+      @results;
+    },
+    fh_open => sub {
+      require Carp;
+      Carp::confess "open @_: No such file or directory" unless exists $vfs_copy{ $_[1] };
+      my $file_tuple = $vfs_copy{ $_[1] };
+      open my $fh, "+$_[0]", \$file_tuple->[1];
+      $fh2file_tuple{$fh} = $file_tuple;
+      $fh;
+    },
+    fh_write      => sub { my $fh = shift; $fh2file_tuple{$fh}[0] = time; print {$fh} @_ },
+    file_readable => sub { exists $vfs_copy{ $_[0] } },
+    mtime         => sub { ($vfs_copy{ $_[0] } || [])->[0] },
+    is_abs        => sub { $_[0] =~ /^\// },
+  };
 }

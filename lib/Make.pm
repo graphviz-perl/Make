@@ -21,24 +21,24 @@ require Make::Functions;
 my $DEFAULTS_AST;
 my %date;
 my %fs_function_map = (
-    glob          => sub { glob $_[0] },
-    fh_open       => sub { open my $fh, $_[0], $_[1] or confess "open @_: $!"; $fh },
-    fh_write      => sub { my $fh = shift;                                     print {$fh} @_ },
-    file_readable => sub { -r $_[0] },
-    mtime         => sub { ( stat $_[0] )[9] },
-    is_abs        => sub { goto &file_name_is_absolute },
+  glob => sub { glob $_[0] },
+  fh_open => sub { open my $fh, $_[0], $_[1] or confess "open @_: $!"; $fh },
+  fh_write => sub { my $fh = shift; print {$fh} @_ },
+  file_readable => sub { -r $_[0] },
+  mtime => sub { (stat $_[0])[9] },
+  is_abs => sub { goto &file_name_is_absolute },
 );
-my @RECMAKE_FINDS = ( \&_find_recmake_cd, );
+my @RECMAKE_FINDS = \&_find_recmake_cd;
 
 sub _find_recmake_cd {
-    my ($cmd) = @_;
-    return unless $cmd =~ /\bcd\s+([^\s;&]+)\s*(?:;|&&)\s*make\s*(.*)/;
-    my ( $dir, $makeargs ) = ( $1, $2 );
-    require Getopt::Long;
-    local @ARGV = Text::ParseWords::shellwords($makeargs);
-    Getopt::Long::GetOptions( "f=s" => \my $makefile );
-    my ( $vars, $targets ) = parse_args(@ARGV);
-    return ( $dir, $makefile, $vars, $targets );
+  my ($cmd) = @_;
+  return unless $cmd =~ /\bcd\s+([^\s;&]+)\s*(?:;|&&)\s*make\s*(.*)/;
+  my ($dir, $makeargs) = ($1, $2);
+  require Getopt::Long;
+  local @ARGV = Text::ParseWords::shellwords($makeargs);
+  Getopt::Long::GetOptions("f=s" => \my $makefile);
+  my ($vars, $targets) = parse_args(@ARGV);
+  return ($dir, $makefile, $vars, $targets);
 }
 
 sub maybe_store {
@@ -62,21 +62,21 @@ sub maybe_add {
 }
 
 sub load_modules {
-    for (@_) {
-        my $pkg = $_;    # to not mutate inputs
-        $pkg =~ s#::#/#g;
-        eval { require "$pkg.pm"; 1 } or die;
-    }
+  for (@_) {
+    my $pkg = $_;    # to not mutate inputs
+    $pkg =~ s#::#/#g;
+    eval { require "$pkg.pm"; 1 } or die;
+  }
 }
 
 sub phony {
-    my ( $self, $name ) = @_;
-    return exists $self->{PHONY}{$name};
+  my ($self, $name) = @_;
+  return exists $self->{PHONY}{$name};
 }
 
 sub suffixes {
-    my ($self) = @_;
-    return sort keys %{ $self->{'SUFFIXES'} };
+  my ($self) = @_;
+  return sort keys %{ $self->{'SUFFIXES'} };
 }
 
 sub target {
@@ -92,57 +92,56 @@ sub target {
 }
 
 sub has_target {
-    my ( $self, $target ) = @_;
-    confess "Trying to has_target undef value" unless defined $target;
-    return exists $self->{Depend}{$target};
+  my ($self, $target) = @_;
+  confess "Trying to has_target undef value" unless defined $target;
+  exists $self->{Depend}{$target};
 }
 
 sub targets {
-    my ($self) = @_;
-    return grep !/%|^\./, keys %{ $self->{Depend} };
+  my ($self) = @_;
+  grep !/%|^\./, keys %{ $self->{Depend} };
 }
 
 # Utility routine for patching %.o type 'patterns'
 my %pattern_cache;
 
 sub patmatch {
-    my ( $pat, $target ) = @_;
-    return $target if $pat eq '%';
-    $pattern_cache{$pat} = join '(.*)', map quotemeta, split /%/, $pat
-        if !exists $pattern_cache{$pat};
-    $pat = $pattern_cache{$pat};
-    if ( $target =~ /^$pat$/ ) {
-        return $1;
-    }
-    return;
+  my ($pat, $target) = @_;
+  return $target if $pat eq '%';
+  $pattern_cache{$pat} = join '(.*)', map quotemeta, split /%/, $pat
+    if !exists $pattern_cache{$pat};
+  $pat = $pattern_cache{$pat};
+  if ($target =~ /^$pat$/) {
+    return $1;
+  }
+  ();
 }
 
 sub in_dir {
-    my ( $fsmap, $dir, $file ) = @_;
-    return $file if defined $file and $fsmap->{is_abs}->($file);
-    my @dir  = defined($dir) ? split /\//, $dir : ();
-    my @file = split /\//, $file;
-    while ( @dir and @file and $file[0] eq '..' ) {
-
-        # normalise out ../ in $file - no account taken of symlinks
-        shift @file;
-        pop @dir;
-    }
-    join '/', @dir, @file;
+  my ($fsmap, $dir, $file) = @_;
+  return $file if defined $file and $fsmap->{is_abs}->($file);
+  my @dir  = defined($dir) ? split /\//, $dir : ();
+  my @file = split /\//, $file;
+  while (@dir and @file and $file[0] eq '..') {
+    # normalise out ../ in $file - no account taken of symlinks
+    shift @file;
+    pop @dir;
+  }
+  join '/', @dir, @file;
 }
 
 sub locate {
-    my ( $self, $file ) = @_;
-    my $fsmap    = $self->fsmap;
-    my $readable = $fsmap->{file_readable};
-    foreach my $key ( sort keys %{ $self->{Vpath} } ) {
-        next unless defined( my $Pat = patmatch( $key, $file ) );
-        foreach my $dir ( @{ $self->{Vpath}{$key} } ) {
-            my $maybe_file = $dir =~ s/%/$Pat/gr;
-            return $maybe_file if $readable->( in_dir $fsmap, $self->{InDir}, $maybe_file );
-        }
+  my ($self, $file) = @_;
+  my $fsmap    = $self->fsmap;
+  my $readable = $fsmap->{file_readable};
+  foreach my $key (sort keys %{ $self->{Vpath} }) {
+    next unless defined(my $Pat = patmatch($key, $file));
+    foreach my $dir (@{ $self->{Vpath}{$key} }) {
+      my $maybe_file = $dir =~ s/%/$Pat/gr;
+      return $maybe_file if $readable->(in_dir $fsmap, $self->{InDir}, $maybe_file);
     }
-    return;
+  }
+  ();
 }
 
 # Convert traditional .c.o rules into GNU-like into %.o : %.c
@@ -151,7 +150,7 @@ sub dotrules {
   my @suffix = $self->suffixes;
   my $Dot    = delete $self->{Dot};
   foreach my $f (@suffix) {
-    foreach my $t ( '', @suffix ) {
+    foreach my $t ('', @suffix) {
       my ($name_f, $name_t, $name_ft) = ("%$f", "%$t", $f . $t);
       delete $self->{Depend}{ $name_ft };
       next unless my $r = delete $Dot->{$name_ft};
@@ -180,207 +179,204 @@ sub rules {
 # Return modified date of name if it exists
 #
 sub date {
-    my ( $self, $name ) = @_;
-    my $fsmap = $self->fsmap;
-    unless ( exists $date{$name} ) {
-        $date{$name} = $self->fsmap->{mtime}->( in_dir $fsmap, $self->{InDir}, $name );
-    }
-    return $date{$name};
+  my ($self, $name) = @_;
+  my $fsmap = $self->fsmap;
+  unless (exists $date{$name}) {
+    $date{$name} = $self->fsmap->{mtime}->(in_dir $fsmap, $self->{InDir}, $name);
+  }
+  $date{$name};
 }
 
-#
 # See if we can find a %.o : %.c rule for target
 # .c.o rules are already converted to this form
-#
 sub patrule {
-    my ( $self, $target, $kind ) = @_;
-    DEBUG and print STDERR "Trying pattern for $target\n";
-    foreach my $key ( sort keys %{ $self->{Pattern} } ) {
-        DEBUG and print STDERR " Pattern $key trying\n";
-        next unless defined( my $Pat = patmatch( $key, $target ) );
-        DEBUG and print STDERR " Pattern $key matched ($Pat)\n";
-        my $t = $self->{Pattern}{$key};
-        foreach my $rule ( @{ $self->rules($t, $key) } ) {
-            my @dep = @{ $rule->prereqs };
-            DEBUG and print STDERR "  Try rule : @dep\n";
-            next unless @dep;
-            my @failed;
-            for my $this_dep (@dep) {
-                $this_dep =~ s/%/$Pat/g;
-                next if $self->date($this_dep) or $self->has_target($this_dep);
-                my $maybe = $self->locate($this_dep);
-                if ( defined $maybe ) {
-                    $this_dep = $maybe;
-                    next;
-                }
-                push @failed, $this_dep;
-            }
-            DEBUG and print STDERR "  " . ( @failed ? "Failed: (@failed)" : "Matched (@dep)" ) . "\n";
-            next if @failed;
-            return Make::Rule->new( $kind, \@dep, $rule->recipe, $rule->recipe_raw );
+  my ($self, $target, $kind) = @_;
+  DEBUG and print STDERR "Trying pattern for $target\n";
+  foreach my $key (sort keys %{ $self->{Pattern} }) {
+    DEBUG and print STDERR " Pattern $key trying\n";
+    next unless defined(my $Pat = patmatch($key, $target));
+    DEBUG and print STDERR " Pattern $key matched ($Pat)\n";
+    my $t = $self->{Pattern}{$key};
+    foreach my $rule (@{ $self->rules($t, $key) }) {
+      my @dep = @{ $rule->prereqs };
+      DEBUG and print STDERR "  Try rule : @dep\n";
+      next unless @dep;
+      my @failed;
+      for my $this_dep (@dep) {
+        $this_dep =~ s/%/$Pat/g;
+        next if $self->date($this_dep) or $self->has_target($this_dep);
+        my $maybe = $self->locate($this_dep);
+        if (defined $maybe) {
+          $this_dep = $maybe;
+          next;
         }
+        push @failed, $this_dep;
+      }
+      DEBUG and print STDERR "  " . (@failed ? "Failed: (@failed)" : "Matched (@dep)") . "\n";
+      next if @failed;
+      return Make::Rule->new($kind, \@dep, $rule->recipe, $rule->recipe_raw);
     }
-    return;
+  }
+  ();
 }
 
 sub evaluate_macro {
-    my ( $key, @args ) = @_;
-    my ( $function_packages, $vars_search_list, $fsmap ) = @args;
-    my $value;
-    return '' if !length $key;
-    if ( $key =~ /^([\w._]+|\S)(?::(.*))?$/ ) {
-        my ( $var, $subst ) = ( $1, $2 );
-        foreach my $hash (@$vars_search_list) {
-            last if defined($value = $hash->{$var});
-        }
-        $value //= '';
-        if (defined $subst) {
-            my @parts = split /=/, $subst, 2;
-            die "Syntax error: expected form x=y in '$subst'" if @parts != 2;
-            $value = join ' ', Make::Functions::patsubst( $fsmap, @parts, $value );
-        }
-    } elsif ( $key =~ /([\w._]+)\s+(.*)$/ ) {
-        my ( $func, $args ) = ( $1, $2 );
-        my $code;
-        foreach my $package (@$function_packages) {
-            last if $code = $package->can($func);
-        }
-        die "'$func' not found in (@$function_packages)" if !defined $code;
-        $value = join ' ', $code->( $fsmap, map subsvars( $_, @args ), split /\s*,\s*/, $args );
-    } elsif ( $key =~ /^\S*\$/ ) {
-
-        # something clever, expand it
-        $key = subsvars( $key, @args );
-        return evaluate_macro( $key, @args );
+  my ($key, @args) = @_;
+  my ($function_packages, $vars_search_list, $fsmap) = @args;
+  my $value;
+  return '' if !length $key;
+  if ($key =~ /^([\w._]+|\S)(?::(.*))?$/) {
+    my ($var, $subst) = ($1, $2);
+    foreach my $hash (@$vars_search_list) {
+      last if defined($value = $hash->{$var});
     }
-    return subsvars( $value, @args );
+    $value //= '';
+    if (defined $subst) {
+        my @parts = split /=/, $subst, 2;
+        die "Syntax error: expected form x=y in '$subst'" if @parts != 2;
+        $value = join ' ', Make::Functions::patsubst($fsmap, @parts, $value);
+    }
+  } elsif ($key =~ /([\w._]+)\s+(.*)$/) {
+    my ($func, $args) = ($1, $2);
+    my $code;
+    foreach my $package (@$function_packages) {
+      last if $code = $package->can($func);
+    }
+    die "'$func' not found in (@$function_packages)" if !defined $code;
+    $value = join ' ', $code->($fsmap, map subsvars($_, @args), split /\s*,\s*/, $args);
+  } elsif ($key =~ /^\S*\$/) {
+    # something clever, expand it
+    $key = subsvars($key, @args);
+    return evaluate_macro($key, @args);
+  }
+  subsvars($value, @args);
 }
 
 sub subsvars {
-    my ( $remaining, $function_packages, $vars_search_list, $fsmap ) = @_;
-    confess "Trying to expand undef value" unless defined $remaining;
-    my $ret = '';
-    my $found;
-    while (1) {
-        last unless $remaining =~ s/(.*?)\$//;
-        $ret .= $1;
-        my $char = substr $remaining, 0, 1;
-        if ( $char eq '$' ) {
-            $ret .= $char;    # literal $
-            substr $remaining, 0, 1, '';
-            next;
-        } elsif ( $char =~ /[\{\(]/ ) {
-            ( $found, my $tail ) = extract_bracketed $remaining, '{}()', '';
-            die "Syntax error in '$remaining'" if !defined $found;
-            $found     = substr $found, 1, -1;
-            $remaining = $tail;
-        } else {
-            $found = substr $remaining, 0, 1, '';
-        }
-        my $value = evaluate_macro( $found, $function_packages, $vars_search_list, $fsmap );
-        if (!defined $value) {
-            warn "Cannot evaluate '$found'\n";
-            $value = '';
-        }
-        $ret .= $value;
+  my ($remaining, $function_packages, $vars_search_list, $fsmap) = @_;
+  confess "Trying to expand undef value" unless defined $remaining;
+  my $ret = '';
+  my $found;
+  while (1) {
+    last unless $remaining =~ s/(.*?)\$//;
+    $ret .= $1;
+    my $char = substr $remaining, 0, 1;
+    if ($char eq '$') {
+      $ret .= $char;    # literal $
+      substr $remaining, 0, 1, '';
+      next;
+    } elsif ($char =~ /[\{\(]/) {
+      ($found, my $tail) = extract_bracketed $remaining, '{}()', '';
+      die "Syntax error in '$remaining'" if !defined $found;
+      $found     = substr $found, 1, -1;
+      $remaining = $tail;
+    } else {
+      $found = substr $remaining, 0, 1, '';
     }
-    return $ret . $remaining;
+    my $value = evaluate_macro($found, $function_packages, $vars_search_list, $fsmap);
+    if (!defined $value) {
+      warn "Cannot evaluate '$found'\n";
+      $value = '';
+    }
+    $ret .= $value;
+  }
+  $ret . $remaining;
 }
 
 # Perhaps should also understand "..." and '...' ?
 # like GNU make will need to understand \ to quote spaces, for deps
 # also C:\xyz as a non-target (overlap with parse_makefile)
 sub tokenize {
-    my ( $string, @extrasep ) = @_;
-    my $pat  = join '|', '\s+', map quotemeta, @extrasep;
-    my @toks = grep defined && length, parse_line $pat, 1, $string;
-    s/\\(\s)/$1/g for @toks;
-    return \@toks;
+  my ($string, @extrasep) = @_;
+  my $pat  = join '|', '\s+', map quotemeta, @extrasep;
+  my @toks = grep defined && length, parse_line $pat, 1, $string;
+  s/\\(\s)/$1/g for @toks;
+  \@toks;
 }
 
 sub get_full_line {
-    my ($fh) = @_;
-    my $final = my $line = <$fh>;
-    return if !defined $line;
-    my $raw = $line;
-    $raw   =~ s/^\t//;
-    $final =~ s/\r?\n\z//;
-    while ( $final =~ /\\$/ ) {
-        $final =~ s/\s*\\\z//;
-        $line = <$fh>;
-        last if !defined $line;
-        my $raw_line = $line;
-        $raw_line =~ s/^\t//;
-        $raw .= $raw_line;
-        $line =~ s/\s*\z//;
-        $line =~ s/^\s*/ /;
-        $final .= $line;
-    }
-    $raw =~ s/\r?\n\z//;
-    return ( $final, $raw );
+  my ($fh) = @_;
+  my $final = my $line = <$fh>;
+  return if !defined $line;
+  my $raw = $line;
+  $raw   =~ s/^\t//;
+  $final =~ s/\r?\n\z//;
+  while ($final =~ /\\$/) {
+    $final =~ s/\s*\\\z//;
+    $line = <$fh>;
+    last if !defined $line;
+    my $raw_line = $line;
+    $raw_line =~ s/^\t//;
+    $raw .= $raw_line;
+    $line =~ s/\s*\z//;
+    $line =~ s/^\s*/ /;
+    $final .= $line;
+  }
+  $raw =~ s/\r?\n\z//;
+  ($final, $raw);
 }
 
 sub set_var {
-    my ( $self, $name, $value ) = @_;
-    $self->{Vars}{$name} = $value;
+  my ($self, $name, $value) = @_;
+  $self->{Vars}{$name} = $value;
 }
 
 sub vars {
-    my ($self) = @_;
-    $self->{Vars};
+  my ($self) = @_;
+  $self->{Vars};
 }
 
 sub function_packages {
-    my ($self) = @_;
-    $self->{FunctionPackages};
+  my ($self) = @_;
+  $self->{FunctionPackages};
 }
 
 sub fsmap {
-    my ($self) = @_;
-    $self->{FSFunctionMap};
+  my ($self) = @_;
+  $self->{FSFunctionMap};
 }
 
 sub expand {
-    my ( $self, $text ) = @_;
-    return subsvars( $text, $self->function_packages, [ $self->vars, \%ENV ], $self->fsmap );
+  my ($self, $text) = @_;
+  subsvars($text, $self->function_packages, [ $self->vars, \%ENV ], $self->fsmap);
 }
 
 sub process_ast_bit {
-    my ( $self, $type, @args ) = @_;
-    return if $type eq 'comment';
-    if ( $type eq 'include' ) {
-        my $opt = $args[0];
-        my ($tokens) = tokenize( $self->expand( $args[1] ) );
-        foreach my $file (@$tokens) {
-            eval {
-                my $fsmap = $self->fsmap;
-                $file = in_dir $fsmap, $self->{InDir}, $file;
-                my $mf  = $fsmap->{fh_open}->( '<', $file );
-                my $ast = parse_makefile($mf);
-                close($mf);
-                $self->process_ast_bit(@$_) for @$ast;
-                1;
-            } or warn $@ if $opt ne '-';
-        }
-    } elsif ( $type eq 'var' ) {
-        my ($var, $val) = ($args[0], $args[1] // "");
-        $self->set_var($self->expand($var), $val);
-    } elsif ( $type eq 'vpath' ) {
-        my ( $pattern, @vpath ) = @args;
-        $self->{Vpath}{$pattern} = \@vpath;
-    } elsif ( $type eq 'rule' ) {
-        my ( $targets, $kind, $prereqs, $cmnds, $cmnds_raw ) = @args;
-        ($prereqs) = tokenize( $self->expand($prereqs) );
-        ($targets) = tokenize( $self->expand($targets) );
-        $self->{Vars}{'.DEFAULT_GOAL'} ||= $targets->[0]
-            if $targets->[0] !~ /%|^\./;
-        unless ( @$targets == 1 and $targets->[0] =~ /^\.[A-Z]/ ) {
-            $self->target($_) for @$prereqs;    # so "exist or can be made"
-        }
-        my $rule = Make::Rule->new( $kind, $prereqs, $cmnds, $cmnds_raw );
-        $self->target($_)->add_rule($rule, $_) for @$targets;
+  my ($self, $type, @args) = @_;
+  return if $type eq 'comment';
+  if ($type eq 'include') {
+    my $opt = $args[0];
+    my ($tokens) = tokenize($self->expand($args[1]));
+    foreach my $file (@$tokens) {
+      eval {
+        my $fsmap = $self->fsmap;
+        $file = in_dir $fsmap, $self->{InDir}, $file;
+        my $mf  = $fsmap->{fh_open}->('<', $file);
+        my $ast = parse_makefile($mf);
+        close($mf);
+        $self->process_ast_bit(@$_) for @$ast;
+        1;
+      } or warn $@ if $opt ne '-';
     }
-    return;
+  } elsif ($type eq 'var') {
+    my ($var, $val) = ($args[0], $args[1] // "");
+    $self->set_var($self->expand($var), $val);
+  } elsif ($type eq 'vpath') {
+    my ($pattern, @vpath) = @args;
+    $self->{Vpath}{$pattern} = \@vpath;
+  } elsif ($type eq 'rule') {
+    my ($targets, $kind, $prereqs, $cmnds, $cmnds_raw) = @args;
+    ($prereqs) = tokenize($self->expand($prereqs));
+    ($targets) = tokenize($self->expand($targets));
+    $self->{Vars}{'.DEFAULT_GOAL'} ||= $targets->[0]
+      if $targets->[0] !~ /%|^\./;
+    unless (@$targets == 1 and $targets->[0] =~ /^\.[A-Z]/) {
+      $self->target($_) for @$prereqs;    # so "exist or can be made"
+    }
+    my $rule = Make::Rule->new($kind, $prereqs, $cmnds, $cmnds_raw);
+    $self->target($_)->add_rule($rule, $_) for @$targets;
+  }
+  return;
 }
 
 #
@@ -388,58 +384,57 @@ sub process_ast_bit {
 # of a command line, or an 'include' in another makefile.
 #
 sub parse_makefile {
-    my ($fh) = @_;
-    my @ast;
-    my $raw;
-    ( local $_, $raw ) = get_full_line($fh);
-    while (1) {
-        last unless defined $_;
+  my ($fh) = @_;
+  my @ast;
+  my $raw;
+  (local $_, $raw) = get_full_line($fh);
+  while (1) {
+    last unless defined $_;
+    s/^\s+//;
+    next if !length;
+    if (/^(-?)include\s+(.*)$/) {
+      push @ast, [ 'include', $1, $2 ];
+    } elsif (s/^#+\s*//) {
+      push @ast, [ 'comment', $_ ];
+    } elsif (/^\s*([\w._\$\(\)]+)\s*:?=\s*(.*)$/) {
+      push @ast, [ 'var', $1, $2 ];
+    } elsif (/^vpath\s+(\S+)\s+([^#]*)/) {
+      my ($pattern, $path) = ($1, $2);
+      my @path = @{ tokenize $path, $Config{path_sep} };
+      push @ast, [ 'vpath', $pattern, @path ];
+    } elsif (
+      /^
+        \s*
+        ([^:\#]*?)
+        \s*
+        (::?)
+        \s*
+        ((?:[^;\#]*\#.*|.*?))
+        (?:\s*;\s*(.*))?
+      $/sx
+    ) {
+      my ($target, $kind, $prereqs, $maybe_cmd) = ($1, $2, $3, $4);
+      my @cmnds     = defined $maybe_cmd ? ($maybe_cmd) : ();
+      my @cmnds_raw = @cmnds;
+      $prereqs =~ s/\s*#.*//;
+      while (($_, $raw) = get_full_line($fh)) {
+        next if /^\s*#/;
+        next if /^\s*$/;
+        last unless /^\t/;
+        next if /^\s*$/;
         s/^\s+//;
-        next if !length;
-        if (/^(-?)include\s+(.*)$/) {
-            push @ast, [ 'include', $1, $2 ];
-        } elsif (s/^#+\s*//) {
-            push @ast, [ 'comment', $_ ];
-        } elsif (/^\s*([\w._\$\(\)]+)\s*:?=\s*(.*)$/) {
-            push @ast, [ 'var', $1, $2 ];
-        } elsif (/^vpath\s+(\S+)\s+([^#]*)/) {
-            my ( $pattern, $path ) = ( $1, $2 );
-            my @path = @{ tokenize $path, $Config{path_sep} };
-            push @ast, [ 'vpath', $pattern, @path ];
-        } elsif (
-            /^
-                \s*
-                ([^:\#]*?)
-                \s*
-                (::?)
-                \s*
-                ((?:[^;\#]*\#.*|.*?))
-                (?:\s*;\s*(.*))?
-            $/sx
-            )
-        {
-            my ( $target, $kind, $prereqs, $maybe_cmd ) = ( $1, $2, $3, $4 );
-            my @cmnds     = defined $maybe_cmd ? ($maybe_cmd) : ();
-            my @cmnds_raw = @cmnds;
-            $prereqs =~ s/\s*#.*//;
-            while ( ( $_, $raw ) = get_full_line($fh) ) {
-                next if /^\s*#/;
-                next if /^\s*$/;
-                last unless /^\t/;
-                next if /^\s*$/;
-                s/^\s+//;
-                push @cmnds,     $_;
-                push @cmnds_raw, $raw;
-            }
-            push @ast, [ 'rule', $target, $kind, $prereqs, \@cmnds, \@cmnds_raw ];
-            redo;
-        } else {
-            warn "Ignore '$_'\n";
-        }
-    } continue {
-        ( $_, $raw ) = get_full_line($fh);
+        push @cmnds,     $_;
+        push @cmnds_raw, $raw;
+      }
+      push @ast, [ 'rule', $target, $kind, $prereqs, \@cmnds, \@cmnds_raw ];
+      redo;
+    } else {
+      warn "Ignore '$_'\n";
     }
-    return \@ast;
+  } continue {
+    ($_, $raw) = get_full_line($fh);
+  }
+  \@ast;
 }
 
 sub pseudos {
@@ -455,75 +450,73 @@ sub pseudos {
       }
     }
   }
-  return;
+  ();
 }
 
 sub find_makefile {
-    my ( $self, $file, $dir ) = @_;
-    my @dirs = grep defined, $self->{InDir}, $dir;
-    $dir = join '/', @dirs if @dirs;
-    my $fsmap = $self->fsmap;
-    return in_dir $fsmap, $dir, $file if defined $file;
-    my @search = qw(makefile Makefile);
-    unshift @search, 'GNUmakefile' if $self->{GNU};
-    @search = map in_dir( $fsmap, $dir, $_ ), @search;
-    for (@search) {
-        return $_ if $fsmap->{file_readable}->($_);
-    }
-    return;
+  my ($self, $file, $dir) = @_;
+  my @dirs = grep defined, $self->{InDir}, $dir;
+  $dir = join '/', @dirs if @dirs;
+  my $fsmap = $self->fsmap;
+  return in_dir $fsmap, $dir, $file if defined $file;
+  my @search = qw(makefile Makefile);
+  unshift @search, 'GNUmakefile' if $self->{GNU};
+  @search = map in_dir($fsmap, $dir, $_), @search;
+  for (@search) {
+    return $_ if $fsmap->{file_readable}->($_);
+  }
+  ();
 }
 
 sub parse {
-    my ( $self, $file ) = @_;
-    my $fh;
-    if ( ref $file eq 'SCALAR' ) {
-        open my $tfh, "+<", $file;
-        $fh = $tfh;
-    } else {
-        $file = $self->find_makefile($file);
-        $fh   = $self->fsmap->{fh_open}->( '<', $file );
-    }
-    my $ast = parse_makefile($fh);
-    $self->process_ast_bit(@$_) for @$ast;
-    undef $fh;
-
-    # Next bits should really be done 'lazy' on need.
-
-    $self->pseudos;     # Pull out .SUFFIXES etc.
-    $self->dotrules;    # Convert .c.o into %.o : %.c
-    return $self;
+  my ($self, $file) = @_;
+  my $fh;
+  if (ref $file eq 'SCALAR') {
+    open my $tfh, "+<", $file;
+    $fh = $tfh;
+  } else {
+    $file = $self->find_makefile($file);
+    $fh   = $self->fsmap->{fh_open}->('<', $file);
+  }
+  my $ast = parse_makefile($fh);
+  $self->process_ast_bit(@$_) for @$ast;
+  undef $fh;
+  # Next bits should really be done 'lazy' on need.
+  $self->pseudos;     # Pull out .SUFFIXES etc.
+  $self->dotrules;    # Convert .c.o into %.o : %.c
+  $self;
 }
 
 sub PrintVars {
-    my $self = shift;
-    local $_;
-    my $vars = $self->vars;
-    foreach ( sort keys %$vars ) {
-        print "$_ = ", $vars->{$_}, "\n";
-    }
-    print "\n";
-    return;
+  my $self = shift;
+  local $_;
+  my $vars = $self->vars;
+  foreach (sort keys %$vars) {
+    print "$_ = ", $vars->{$_}, "\n";
+  }
+  print "\n";
+  ();
 }
 
 sub parse_cmdline {
-    my ($line) = @_;
-    $line =~ s/^([\@\s-]*)//;
-    my $prefix = $1;
-    my %parsed = ( line => $line );
-    $parsed{silent}   = 1 if $prefix =~ /\@/;
-    $parsed{can_fail} = 1 if $prefix =~ /-/;
-    return \%parsed;
+  my ($line) = @_;
+  $line =~ s/^([\@\s-]*)//;
+  my $prefix = $1;
+  my %parsed = (line => $line);
+  $parsed{silent}   = 1 if $prefix =~ /\@/;
+  $parsed{can_fail} = 1 if $prefix =~ /-/;
+  \%parsed;
 }
 
-my %NAME_QUOTING     = map +( $_ => sprintf "%%%02x", ord $_ ), qw(% :);
-my $NAME_QUOTE_CHARS = join '', '[', ( map quotemeta, sort keys %NAME_QUOTING ), ']';
+my %NAME_QUOTING     = map +($_ => sprintf "%%%02x", ord $_), qw(% :);
+my $NAME_QUOTE_CHARS = join '', '[', (map quotemeta, sort keys %NAME_QUOTING), ']';
 
 sub name_encode {
-    join ':', map {
-        my $s = $_;
-        $s =~ s/($NAME_QUOTE_CHARS)/$NAME_QUOTING{$1}/gs;
-        $s
-    } @{ $_[0] };
+  join ':', map {
+    my $s = $_;
+    $s =~ s/($NAME_QUOTE_CHARS)/$NAME_QUOTING{$1}/gs;
+    $s
+  } @{ $_[0] };
 }
 
 sub name_decode {
@@ -531,31 +524,31 @@ sub name_decode {
 }
 
 sub exec {
-    my ( $self, $line ) = @_;
-    undef %date;
-    my $parsed = parse_cmdline($line);
-    print "$parsed->{line}\n" unless $parsed->{silent};
-    my $code = system $parsed->{line};
-    if ( $code && !$parsed->{can_fail} ) {
-        $code >>= 8;
-        die "Code $code from $parsed->{line}";
-    }
-    return;
+  my ($self, $line) = @_;
+  undef %date;
+  my $parsed = parse_cmdline($line);
+  print "$parsed->{line}\n" unless $parsed->{silent};
+  my $code = system $parsed->{line};
+  if ($code && !$parsed->{can_fail}) {
+    $code >>= 8;
+    die "Code $code from $parsed->{line}";
+  }
+  ();
 }
 
 sub NextPass { shift->{Pass}++ }
 sub pass     { shift->{Pass} }
 
 sub parse_args {
-    my ( @vars, @targets );
-    foreach (@_) {
-        if (/^(\w+)=(.*)$/) {
-            push @vars, [ $1, $2 ];
-        } else {
-            push @targets, $_;
-        }
+  my (@vars, @targets);
+  foreach (@_) {
+    if (/^(\w+)=(.*)$/) {
+      push @vars, [ $1, $2 ];
+    } else {
+      push @targets, $_;
     }
-    return \@vars, \@targets;
+  }
+  (\@vars, \@targets);
 }
 
 sub _rmf_search_rule {
@@ -575,94 +568,93 @@ sub _rmf_search_rule {
 }
 
 sub find_recursive_makes {
-    my ($self) = @_;
-    my @found;
-    my $rmfs = $self->{RecursiveMakeFinders};
-    for my $target ( sort $self->targets ) {
-        my $target_obj = $self->target($target);
-        my $rule_no    = 0;
-        push @found, map $self->_rmf_search_rule($_, $target_obj, $target, $rule_no++, $rmfs), @{ $self->rules($target_obj, $target) };
-    }
-    return @found;
+  my ($self) = @_;
+  my @found;
+  my $rmfs = $self->{RecursiveMakeFinders};
+  for my $target (sort $self->targets) {
+    my $target_obj = $self->target($target);
+    my $rule_no    = 0;
+    push @found, map $self->_rmf_search_rule($_, $target_obj, $target, $rule_no++, $rmfs), @{ $self->rules($target_obj, $target) };
+  }
+  @found;
 }
 
 sub as_graph {
-    my ( $self,     %options )        = @_;
-    my ( $no_rules, $recursive_make ) = @options{qw(no_rules recursive_make)};
-    require Graph;
-    my $g = Graph->new( $no_rules ? ( multiedged => 1 ) : () );
-    my ( %recipe_cache, %seen );
-    my $rmfs      = $self->{RecursiveMakeFinders};
-    my $fsmap     = $self->fsmap;
-    my $fr        = $fsmap->{file_readable};
-    my %make_args = (
-        FunctionPackages => $self->function_packages,
-        FSFunctionMap    => $fsmap,
-    );
-    my $InDir = $self->{InDir};
-
-    for my $target ( sort $self->targets ) {
-        my $node_name = $no_rules ? $target : name_encode( [ 'target', $target ] );
-        $g->add_vertex($node_name);
-        my $rule_no    = -1;
-        my $target_obj = $self->target($target);
-        for my $rule ( @{ $self->rules($target_obj, $target) } ) {
-            $rule_no++;
-            my $recipe      = $rule->recipe;
-            my $recipe_hash = { recipe => $recipe, recipe_raw => $rule->recipe_raw };
-            my $from_id;
-            if ($no_rules) {
-                $from_id = $node_name;
-            } else {
-                $from_id = $recipe_cache{$recipe}
-                    || ( $recipe_cache{$recipe} = name_encode( [ 'rule', $target, $rule_no ] ) );
-                $g->set_vertex_attributes( $from_id, $recipe_hash );
-                $g->add_edge( $node_name, $from_id );
-            }
-            my $prereqs  = $rule->prereqs;
-            my @to_nodes = ( $no_rules && !@$prereqs ) ? $node_name : @$prereqs;
-            for my $dep (@to_nodes) {
-                my $dep_node = $no_rules ? $dep : name_encode( [ 'target', $dep ] );
-                $g->add_vertex($dep_node);
-                if ($no_rules) {
-                    my @edge = ( $from_id, $dep_node, $rule_no );
-                    $g->set_edge_attributes_by_id( @edge, $recipe_hash );
-                } else {
-                    $g->add_edge( $from_id, $dep_node );
-                }
-            }
-            next if !$recursive_make;
-            for my $t ($self->_rmf_search_rule($rule, $target_obj, $target, $rule_no, $rmfs)) {
-                my ( undef, $rule_index, $line, $dir, $makefile, $vars, $targets ) = @$t;
-                my $from           = $no_rules ? $target : name_encode( [ 'rule', $target, $rule_index ] );
-                my $indir_makefile = $self->find_makefile( $makefile, $dir );
-                next unless $indir_makefile && $fr->($indir_makefile);
-                my $cache_key = join ' ', $indir_makefile, sort map join( '=', @$_ ), @$vars;
-                if ( !$seen{$cache_key}++ ) {
-                    my $make2 = ref($self)->new( %make_args, InDir => in_dir( $fsmap, $InDir, $dir ) );
-                    $make2->parse($makefile);
-                    $make2->set_var(@$_) for @$vars;
-                    $targets = [ $make2->{Vars}{'.DEFAULT_GOAL'} ] unless @$targets;
-                    my $g2 = $make2->as_graph(%options);
-                    $g2->rename_vertices(
-                        sub {
-                            return in_dir( $fsmap, $dir, $_[0] ) if $no_rules;
-                            my ( $type, $name, @other ) = @{ name_decode( $_[0] ) };
-                            name_encode( [ $type, in_dir( $fsmap, $dir, $name ), @other ] );
-                        }
-                    );
-                    $g->ingest($g2);
-                }
-                if ($no_rules) {
-                    $g->add_edge( $from, $_ ) for map "$dir/$_", @$targets;
-                } else {
-                    $g->set_edge_attribute( $from, $_, fromline => $line )
-                        for map name_encode( [ 'target', "$dir/$_" ] ), @$targets;
-                }
-            }
+  my ($self, %options) = @_;
+  my ($no_rules, $recursive_make) = @options{qw(no_rules recursive_make)};
+  require Graph;
+  my $g = Graph->new($no_rules ? (multiedged => 1) : ());
+  my (%recipe_cache, %seen);
+  my $rmfs      = $self->{RecursiveMakeFinders};
+  my $fsmap     = $self->fsmap;
+  my $fr        = $fsmap->{file_readable};
+  my %make_args = (
+    FunctionPackages => $self->function_packages,
+    FSFunctionMap    => $fsmap,
+  );
+  my $InDir = $self->{InDir};
+  for my $target (sort $self->targets) {
+    my $node_name = $no_rules ? $target : name_encode([ 'target', $target ]);
+    $g->add_vertex($node_name);
+    my $rule_no    = -1;
+    my $target_obj = $self->target($target);
+    for my $rule (@{ $self->rules($target_obj, $target) }) {
+      $rule_no++;
+      my $recipe      = $rule->recipe;
+      my $recipe_hash = { recipe => $recipe, recipe_raw => $rule->recipe_raw };
+      my $from_id;
+      if ($no_rules) {
+        $from_id = $node_name;
+      } else {
+        $from_id = $recipe_cache{$recipe}
+          || ($recipe_cache{$recipe} = name_encode([ 'rule', $target, $rule_no ]));
+        $g->set_vertex_attributes($from_id, $recipe_hash);
+        $g->add_edge($node_name, $from_id);
+      }
+      my $prereqs  = $rule->prereqs;
+      my @to_nodes = ($no_rules && !@$prereqs) ? $node_name : @$prereqs;
+      for my $dep (@to_nodes) {
+        my $dep_node = $no_rules ? $dep : name_encode([ 'target', $dep ]);
+        $g->add_vertex($dep_node);
+        if ($no_rules) {
+          my @edge = ($from_id, $dep_node, $rule_no);
+          $g->set_edge_attributes_by_id(@edge, $recipe_hash);
+        } else {
+          $g->add_edge($from_id, $dep_node);
         }
+      }
+      next if !$recursive_make;
+      for my $t ($self->_rmf_search_rule($rule, $target_obj, $target, $rule_no, $rmfs)) {
+        my (undef, $rule_index, $line, $dir, $makefile, $vars, $targets) = @$t;
+        my $from = $no_rules ? $target : name_encode([ 'rule', $target, $rule_index ]);
+        my $indir_makefile = $self->find_makefile($makefile, $dir);
+        next unless $indir_makefile && $fr->($indir_makefile);
+        my $cache_key = join ' ', $indir_makefile, sort map join('=', @$_), @$vars;
+        if (!$seen{$cache_key}++) {
+          my $make2 = ref($self)->new(%make_args, InDir => in_dir($fsmap, $InDir, $dir));
+          $make2->parse($makefile);
+          $make2->set_var(@$_) for @$vars;
+          $targets = [ $make2->{Vars}{'.DEFAULT_GOAL'} ] unless @$targets;
+          my $g2 = $make2->as_graph(%options);
+          $g2->rename_vertices(
+            sub {
+              return in_dir($fsmap, $dir, $_[0]) if $no_rules;
+              my ($type, $name, @other) = @{ name_decode($_[0]) };
+              name_encode([ $type, in_dir($fsmap, $dir, $name), @other ]);
+            }
+          );
+          $g->ingest($g2);
+        }
+        if ($no_rules) {
+          $g->add_edge($from, $_) for map "$dir/$_", @$targets;
+        } else {
+          $g->set_edge_attribute($from, $_, fromline => $line)
+            for map name_encode([ 'target', "$dir/$_" ]), @$targets;
+        }
+      }
     }
-    return $g;
+  }
+  $g;
 }
 
 sub apply {
@@ -693,7 +685,7 @@ sub recurse {
 # Spew a shell script to perfom the 'make' e.g. make -n
 sub Script {
   my ($self, @args) = @_;
-  my $com = ( $^O eq 'MSWin32' ) ? 'rem ' : '# ';
+  my $com = $^O eq 'MSWin32' ? 'rem ' : '# ';
   my @results;
   for ($self->apply(Make => @args)) {
     my ($name, @cmd) = @$_;
@@ -717,7 +709,7 @@ sub Make {
 }
 
 sub new {
-  my ( $class, %args ) = @_;
+  my ($class, %args) = @_;
   # member: Pass, incremented each sweep
   my $self = bless {
     Pattern              => {},      # GNU style %.o : %.c
@@ -731,11 +723,11 @@ sub new {
     RecursiveMakeFinders => \@RECMAKE_FINDS,
     %args,
   }, $class;
-  $self->set_var( 'CC',     $Config{cc} );
-  $self->set_var( 'AR',     $Config{ar} );
-  $self->set_var( 'CFLAGS', $Config{optimize} );
-  load_modules( @{ $self->function_packages } );
-  $DEFAULTS_AST ||= parse_makefile( \*DATA );
+  $self->set_var('CC',     $Config{cc});
+  $self->set_var('AR',     $Config{ar});
+  $self->set_var('CFLAGS', $Config{optimize});
+  load_modules(@{ $self->function_packages });
+  $DEFAULTS_AST ||= parse_makefile(\*DATA);
   $self->process_ast_bit(@$_) for @$DEFAULTS_AST;
   $self;
 }
