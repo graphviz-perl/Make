@@ -25,7 +25,7 @@ sub recipe_raw {
 # In scalar context - boolean value of 'do we need to apply the rule'
 # In list context the things we are out-of-date with e.g. magic $? variable
 sub out_of_date {
-  my ($self, $target, $name, $info) = @_;
+  my ($self, $name, $info) = @_;
   confess "info not given" if !defined $info;
   my @dep   = ();
   my $tdate = $info->date($name);
@@ -86,7 +86,7 @@ sub kind {
 sub Make {
   my ($self, $target, $name, $info) = @_;
   confess "info not given" if !defined $info;
-  return if !$self->out_of_date($target, $name, $info);
+  return if !$self->out_of_date($name, $info);
   [ $name, $self->exp_recipe($target, $name, $info) ];
 }
 
@@ -124,7 +124,7 @@ Make::Rule - a rule with prerequisites and recipe
     my @cmds = @{ $rule->recipe };
     my @expanded_cmds = @{ $rule->exp_recipe($target, $name, $make) }; # vars expanded
     my @raw_cmds = @{ $rule->recipe_raw }; # with any \ still on line-ends
-    my @ood = $rule->out_of_date($target, $name, $make);
+    my @ood = $rule->out_of_date($name, $make);
     my $vars = $rule->auto_vars($target, $name, $make); # tied hash-ref
 
 =head1 DESCRIPTION
