@@ -547,10 +547,10 @@ sub parse_args {
 }
 
 sub _rmf_search_rule {
-  my ($self, $rule, $target_obj, $target, $rule_no, $rmfs) = @_;
+  my ($self, $rule, $target, $rule_no, $rmfs) = @_;
   my @found;
   my $line = -1;
-  for my $cmd ($rule->exp_recipe($target_obj, $target, $self)) {
+  for my $cmd ($rule->exp_recipe($target, $self)) {
     $line++;
     my @rec_vars;
     for my $rf (@$rmfs) {
@@ -569,7 +569,7 @@ sub find_recursive_makes {
   for my $target (sort $self->targets) {
     my $target_obj = $self->target($target);
     my $rule_no    = 0;
-    push @found, map $self->_rmf_search_rule($_, $target_obj, $target, $rule_no++, $rmfs), @{ $self->rules($target_obj, $target) };
+    push @found, map $self->_rmf_search_rule($_, $target, $rule_no++, $rmfs), @{ $self->rules($target_obj, $target) };
   }
   @found;
 }
@@ -619,7 +619,7 @@ sub as_graph {
         }
       }
       next if !$recursive_make;
-      for my $t ($self->_rmf_search_rule($rule, $target_obj, $target, $rule_no, $rmfs)) {
+      for my $t ($self->_rmf_search_rule($rule, $target, $rule_no, $rmfs)) {
         my (undef, $rule_index, $line, $dir, $makefile, $vars, $targets) = @$t;
         my $from = $no_rules ? $target : name_encode([ 'rule', $target, $rule_index ]);
         my $indir_makefile = $self->find_makefile($makefile, $dir);
