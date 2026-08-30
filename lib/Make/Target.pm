@@ -34,7 +34,7 @@ sub add_rule {
   my ($self, $rule, $name) = @_;
   my $new_kind = $rule->kind;
   my $kind     = $self->{RULE_TYPE} ||= $new_kind;
-  die "Target '$name' had '$kind' but tried to add '$new_kind'"
+  confess "Target '$name' had '$kind' but tried to add '$new_kind'"
     if $kind ne $new_kind;
   delete $self->{HAS_RECIPE}; # reset if was no or unknown
   Make::maybe_add($self, 'RULE', $rule);

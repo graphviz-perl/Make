@@ -147,14 +147,13 @@ sub dotrules {
   foreach my $f (@suffix) {
     foreach my $t ('', @suffix) {
       my ($name_f, $name_t, $name_ft) = ("%$f", "%$t", $f . $t);
-      delete $self->{Depend}{ $name_ft };
       next unless my $r = delete $Dot->{$name_ft};
-      DEBUG and print STDERR "Pattern $name_t : $name_f\n";
+      DEBUG and print STDERR "Pattern from dotrule $name_t :: $name_f\n";
       my $target = $self->target($name_t);
-      my $thisrule = $self->rules($r, $name_ft)->[-1]; # last-specified
+      my $thisrule = $r->rules->[-1]; # last-specified
       die "Failed on pattern rule for '$name_ft', no prereqs allowed"
         if @{ $thisrule->prereqs };
-      my $rule = Make::Rule->new('::', [ $name_f ], $thisrule->recipe, $thisrule->recipe_raw);
+      my $rule = Make::Rule->new(':', [ $name_f ], $thisrule->recipe, $thisrule->recipe_raw);
       $target->add_rule($rule, $name_t);
     }
   }
@@ -441,7 +440,7 @@ sub pseudos {
     my $t = delete $self->{Dot}{$name};
     if (defined $t) {
       $self->{$key} = {};
-      foreach my $dep (map @{ $_->prereqs }, @{ $self->rules($t, $name) }) {
+      foreach my $dep (map @{ $_->prereqs }, @{ $t->rules }) {
         $self->{$key}{$dep} = 1;
       }
     }
