@@ -166,12 +166,12 @@ my $all_target = $m->target('all');
 my ($all_rule) = @{ $m->rules($all_target, 'all') };
 $got = $all_rule->prereqs;
 is_deeply $got, ['other'] or diag explain $got;
-$got = $all_rule->auto_vars($all_target, 'all', $m);
+$got = $all_rule->auto_vars('all', $m);
 ok exists $got->{'@'}, 'Rules.Vars.EXISTS';
 is_deeply [ keys %$got ], [qw(@ * ^ ? <)] or diag explain $got;
 my $ax_target = $m->target('a.x.o');
 my ($ax_rule) = @{ $m->rules($ax_target, 'a.x.o') };
-$got = $ax_rule->auto_vars($ax_target, 'a.x.o', $m);
+$got = $ax_rule->auto_vars('a.x.o', $m);
 is $got->{'*'}, 'a.x';
 
 my $recmake_fsmap = make_fsmap({

@@ -45,9 +45,9 @@ sub out_of_date {
 }
 
 sub auto_vars {
-  my ($self, $target, $name, $info) = @_;
+  my ($self, $name, $info) = @_;
   confess "info not given" if !defined $info;
-  tie my %var, 'Make::Rule::Vars', $self, $info, $name, $target;
+  tie my %var, 'Make::Rule::Vars', $self, $info, $name;
   return \%var;
 }
 
@@ -55,7 +55,7 @@ sub auto_vars {
 sub exp_recipe {
   my ($self, $target, $name, $info) = @_;
   confess "info not given" if !defined $info;
-  my @subs_args = ($info->function_packages, [ $self->auto_vars($target, $name, $info), $info->vars, \%ENV ]);
+  my @subs_args = ($info->function_packages, [ $self->auto_vars($name, $info), $info->vars, \%ENV ]);
   my @cmd = map Make::subsvars( $_, @subs_args ), @{ $self->recipe };
   wantarray ? @cmd : \@cmd;
 }
@@ -125,7 +125,7 @@ Make::Rule - a rule with prerequisites and recipe
     my @expanded_cmds = @{ $rule->exp_recipe($target, $name, $make) }; # vars expanded
     my @raw_cmds = @{ $rule->recipe_raw }; # with any \ still on line-ends
     my @ood = $rule->out_of_date($name, $make);
-    my $vars = $rule->auto_vars($target, $name, $make); # tied hash-ref
+    my $vars = $rule->auto_vars($name, $make); # tied hash-ref
 
 =head1 DESCRIPTION
 

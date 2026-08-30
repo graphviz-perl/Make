@@ -15,8 +15,8 @@ my %NEXTKEY = map +( $_ => ++$i ), @KEYS;
 # hash references to possible sources of variable definitions.
 
 sub TIEHASH {
-  my ($class, $rule, $info, $name, $target) = @_;
-  bless [ $rule, $info, $name, $target ], $class;
+  my ($class, $rule, $info, $name) = @_;
+  bless [ $rule, $info, $name ], $class;
 }
 
 sub FIRSTKEY {
@@ -35,7 +35,7 @@ sub EXISTS {
 
 sub FETCH {
   my ($self, $v)      = @_;
-  my ($rule, $info, $name, $target) = @$self;
+  my ($rule, $info, $name) = @$self;
   DEBUG and print STDERR "FETCH $v for ", $name, "\n";
   return $name if $v eq '@';
   return $name =~ s/\.[^.]+$//r if $v eq '*';
