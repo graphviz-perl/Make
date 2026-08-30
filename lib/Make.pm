@@ -707,8 +707,7 @@ sub Script {
   my @results;
   for ($self->apply(Make => @args)) {
     my ($name, @cmd) = @$_;
-    push @results, $com . $name . "\n";
-    push @results, map parse_cmdline($_)->{line} . "\n", @cmd;
+    push @results, "$com$name\n", map parse_cmdline($_)->{line} . "\n", @cmd;
   }
   @results;
 }
@@ -764,7 +763,7 @@ Make - Pure-Perl implementation of a somewhat GNU-like make.
     print $make->Script(@ARGV);
 
     # to see an expanded version of the makefile
-    $make->Print(@ARGV);
+    print $make->Print(@ARGV);
 
     my $targ = $make->target($name);
     my $rule = Make::Rule->new(':', \@prereqs, \@recipe, \@recipe_raw);
@@ -890,12 +889,12 @@ target in the makefile.
 
 =head2 Print
 
-Print to current C<select>'ed stream a form of the makefile with all
+Return a list of strings with a form of the makefile with all
 variables expanded.
 
 =head2 Script
 
-Print to current C<select>'ed stream the equivalent bourne shell script
+Return a list of strings with the equivalent bourne shell script
 that a make would perform i.e. the output of C<make -n>.
 
 =head2 set_var

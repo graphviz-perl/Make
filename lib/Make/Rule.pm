@@ -76,17 +76,9 @@ sub Make {
 sub Print {
   my ($self, $name, $info) = @_;
   confess "info not given" if !defined $info;
-  print "$name $self->{KIND} ";
-  print " \\\n   $_" for $self->prereqs;
-  print "\n";
-  my @cmd = $self->exp_recipe($name, $info);
-  if (@cmd) {
-    print "\t$_\n" for @cmd;
-  } else {
-    print STDERR "No recipe for $name\n" unless $info->phony($name);
-  }
-  print "\n";
-  ();
+  my @result = join(' ', $name, $self->{KIND}, @{ $self->prereqs }) . "\n";
+  push @result, map "\t$_\n", @{ $self->exp_recipe($name, $info) };
+  @result;
 }
 
 =head1 NAME

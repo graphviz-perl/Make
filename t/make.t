@@ -199,6 +199,10 @@ all: ; @"%s" -e "print shift().qq{\n}" "$(space)" >"$(tempfile)"
 .PHONY: all
 EOF
 ok $m->phony('all'),  'all is phony';
+is_deeply $got=[$m->Print], [
+  "all :\n",
+   qq{\t\@"$^X" -e "print shift().qq{\\n}" " " >"$tempfile"\n},
+], 'Print' or diag explain $got;
 my $com = $^O eq 'MSWin32' ? 'rem ' : '# ';
 is_deeply $got=[$m->Script], [
   "${com}all\n",

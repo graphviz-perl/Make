@@ -31,7 +31,7 @@ if ( $opt{D} ) {
     local $Data::Dumper::Indent = $Data::Dumper::Sortkeys = $Data::Dumper::Terse = 1;
     print Data::Dumper::Dumper($info);
 } elsif ( $opt{p} ) {
-    $info->Print(@ARGV);
+    print $info->Print(@ARGV);
 } elsif ( $opt{n} ) {
     print $info->Script(@ARGV);
 } elsif ( $redundancy ) {
