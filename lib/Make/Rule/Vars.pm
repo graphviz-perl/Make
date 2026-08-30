@@ -25,17 +25,17 @@ sub NEXTKEY { $KEYS[ $NEXTKEY{$_[1]} ] }
 sub EXISTS { exists $NEXTKEY{$_[1]} }
 
 my %DISPATCH = (
-  '@' => sub { $_[0][2] },
-  '*' => sub { $_[0][2] =~ s/\.[^.]+$//r },
-  '^' => sub { join ' ', @{ $_[0][0]->prereqs } },
-  '?' => sub { join ' ', @{ $_[0][1]->out_of_date($_[0][2], $_[0][0]) } },
-  '<' => sub { $_[0][0]->prereqs->[0] },
+  '@' => sub { $_[2] },
+  '*' => sub { $_[2] =~ s/\.[^.]+$//r },
+  '^' => sub { join ' ', @{ $_[0]->prereqs } },
+  '?' => sub { join ' ', @{ $_[1]->out_of_date($_[2], $_[0]) } },
+  '<' => sub { $_[0]->prereqs->[0] },
 );
 sub FETCH {
   my ($self, $v)      = @_;
   DEBUG and print STDERR "FETCH $v for $self->[2]\n";
   return unless my $sub = $DISPATCH{$v};
-  $sub->($self);
+  $sub->(@$self);
 }
 
 1;
