@@ -40,7 +40,7 @@ sub FETCH {
   return $name if $v eq '@';
   return $name =~ s/\.[^.]+$//r if $v eq '*';
   return join ' ', @{ $rule->prereqs }         if $v eq '^';
-  return join ' ', $rule->out_of_date($name, $info) if $v eq '?';
+  return join ' ', $info->out_of_date($name, $rule) if $v eq '?';
   return ( @{ $rule->prereqs } )[0] if $v eq '<';
   ();
 }

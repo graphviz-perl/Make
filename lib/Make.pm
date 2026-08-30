@@ -677,6 +677,29 @@ sub recurse {
   @results;
 }
 
+# The key make test - is target out-of-date as far as this rule is concerned
+# In scalar context - boolean value of 'do we need to apply the rule'
+# In list context the things we are out-of-date with e.g. magic $? variable
+sub out_of_date {
+  my ($self, $name, $rule) = @_;
+  confess "rule not given" if !defined $rule;
+  my @dep   = ();
+  my $tdate = $self->date($name);
+  my $count = 0;
+  foreach my $dep (@{ $rule->prereqs }) {
+    my $date = $self->date($dep);
+    $count++;
+    if (!defined($date) || !defined($tdate) || $date > $tdate) {
+      DEBUG and print STDERR "$name outdated by $dep\n";
+      return 1 unless wantarray;
+      push @dep, $dep;
+    }
+  }
+  return @dep if wantarray;
+  # Note special case of no prerequisites means it is always out-of-date!
+  !$count;
+}
+
 # Spew a shell script to perfom the 'make' e.g. make -n
 sub Script {
   my ($self, @args) = @_;
@@ -918,6 +941,12 @@ any recursive make invocations using the L</RecursiveMakeFinders>.
 Returns a list of array-refs with:
 
     [ $from_target, $rule_index, $line_index, $dir, $makefile, $vars, $targets ]
+
+=head2 out_of_date
+
+    my @ood = $make->out_of_date($name, $rule);
+
+List of all prerequisites of C<$name> out of date compared to it.
 
 =head1 ATTRIBUTES
 

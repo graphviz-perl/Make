@@ -21,29 +21,6 @@ sub recipe_raw {
   @stored ? \@stored : $_[0]->recipe;
 }
 
-# The key make test - is target out-of-date as far as this rule is concerned
-# In scalar context - boolean value of 'do we need to apply the rule'
-# In list context the things we are out-of-date with e.g. magic $? variable
-sub out_of_date {
-  my ($self, $name, $info) = @_;
-  confess "info not given" if !defined $info;
-  my @dep   = ();
-  my $tdate = $info->date($name);
-  my $count = 0;
-  foreach my $dep ( @{ $self->prereqs } ) {
-    my $date = $info->date($dep);
-    $count++;
-    if (!defined($date) || !defined($tdate) || $date > $tdate) {
-      DEBUG and print STDERR "$name outdated by $dep\n";
-      return 1 unless wantarray;
-      push( @dep, $dep );
-    }
-  }
-  return @dep if wantarray;
-  # Note special case of no prerequisites means it is always out-of-date!
-  !$count;
-}
-
 sub auto_vars {
   my ($self, $name, $info) = @_;
   confess "info not given" if !defined $info;
@@ -56,12 +33,12 @@ sub exp_recipe {
   my ($self, $name, $info) = @_;
   confess "info not given" if !defined $info;
   my @subs_args = ($info->function_packages, [ $self->auto_vars($name, $info), $info->vars, \%ENV ]);
-  my @cmd = map Make::subsvars( $_, @subs_args ), @{ $self->recipe };
+  my @cmd = map Make::subsvars($_, @subs_args), @{ $self->recipe };
   wantarray ? @cmd : \@cmd;
 }
 
 sub new {
-  my ( $class, $kind, $prereqs, $recipe, $recipe_raw ) = @_;
+  my ($class, $kind, $prereqs, $recipe, $recipe_raw) = @_;
   confess "prereqs $prereqs are not an array reference"
     if 'ARRAY' ne ref $prereqs;
   confess "recipe $recipe not an array reference"
@@ -86,7 +63,7 @@ sub kind {
 sub Make {
   my ($self, $name, $info) = @_;
   confess "info not given" if !defined $info;
-  return if !$self->out_of_date($name, $info);
+  return if !$info->out_of_date($name, $self);
   [ $name, $self->exp_recipe($name, $info) ];
 }
 
@@ -118,13 +95,12 @@ Make::Rule - a rule with prerequisites and recipe
 
 =head1 SYNOPSIS
 
-    my $rule = Make::Rule->new( $kind, \@prereqs, \@recipe, \@recipe_raw );
+    my $rule = Make::Rule->new($kind, \@prereqs, \@recipe, \@recipe_raw);
     my @name_commands = $rule->Make($target, $make);
     my @deps = @{ $rule->prereqs };
     my @cmds = @{ $rule->recipe };
     my @expanded_cmds = @{ $rule->exp_recipe($name, $make) }; # vars expanded
     my @raw_cmds = @{ $rule->recipe_raw }; # with any \ still on line-ends
-    my @ood = $rule->out_of_date($name, $make);
     my $vars = $rule->auto_vars($name, $make); # tied hash-ref
 
 =head1 DESCRIPTION
