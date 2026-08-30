@@ -27,7 +27,9 @@ $info->parse($opt{f});
 
 if ( $opt{D} ) {
     require Data::Dumper;
-    print Data::Dumper::DumperX($info);
+    no warnings 'once';
+    local $Data::Dumper::Indent = $Data::Dumper::Sortkeys = $Data::Dumper::Terse = 1;
+    print Data::Dumper::Dumper($info);
 } elsif ( $opt{p} ) {
     $info->Print(@ARGV);
 } elsif ( $opt{n} ) {
@@ -102,7 +104,7 @@ For details see L<Make> for the underlying perl module.
 
 =head2 -D
 
-Don't build, just L<Data::Dumper/DumperX> the L<Make> object.
+Don't build, just L<Data::Dumper/Dumper> the L<Make> object.
 
 =head2 -n
 

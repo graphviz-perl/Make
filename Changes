@@ -2,6 +2,7 @@
 - macro (aka variable) assignments can now be e.g. "$(V)MS = -s"
 - refactor to store less data making debugging easier
 - minimum Perl now 5.14
+- stop infinite loop on cmake "disable VCS implicit rules"
 
 2.011 2020-12-23
 - add_suffix function - thanks @jwrightecs

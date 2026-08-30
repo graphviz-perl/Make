@@ -218,6 +218,8 @@ CC = @"%s" -e "print qq[@ARGV\n]" COMPILE >>"$(tempfile)"
 .c.o: ; $(CC) -c -o $@ $<
 all: $(objs)
 .PHONY: all
+# Disable VCS-based implicit rules. (from cmake-generated)
+%% : %%,v # double because sprintf
 EOF
 my $vfs = {
   'src/a.c'   => [ 2, 'hi' ],
