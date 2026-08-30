@@ -81,14 +81,9 @@ sub suffixes {
 
 sub target {
   my ($self, $target) = @_;
-  return $self->{Depend}{$target} if exists $self->{Depend}{$target};
-  my $t = $self->{Depend}{$target} = Make::Target->new;
-  if ($target =~ /%/) {
-    $self->{Pattern}{$target} = $t;
-  } elsif ($target =~ /^\./) {
-    $self->{Dot}{$target} = $t;
-  }
-  $t;
+  return $self->{Pattern}{$target} //= Make::Target->new if $target =~ /%/;
+  return $self->{Dot}{$target} //= Make::Target->new if $target =~ /^\./;
+  $self->{Depend}{$target} //= Make::Target->new;
 }
 
 sub has_target {
@@ -163,7 +158,7 @@ sub dotrules {
       $target->add_rule($rule, $name_t);
     }
   }
-  return;
+  ();
 }
 
 sub rules {
@@ -204,6 +199,7 @@ sub patrule {
       my @failed;
       for my $this_dep (@dep) {
         $this_dep =~ s/%/$Pat/g;
+        DEBUG and print STDERR "   Considering : $this_dep\n";
         next if $self->date($this_dep) or $self->has_target($this_dep);
         my $maybe = $self->locate($this_dep);
         if (defined $maybe) {
