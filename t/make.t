@@ -203,6 +203,11 @@ all: ; @"%s" -e "print shift().qq{\n}" "$(space)" >"$(tempfile)"
 .PHONY: all
 EOF
 ok $m->phony('all'),  'all is phony';
+my $com = $^O eq 'MSWin32' ? 'rem ' : '# ';
+is_deeply $got=[$m->Script], [
+  "${com}all\n",
+   qq{"$^X" -e "print shift().qq{\\n}" " " >"$tempfile"\n},
+], 'Script' or diag explain $got;
 $m->Make;
 $contents = do { local $/; open my $fh, '<', $tempfile; <$fh> };
 is $contents, " \n";
