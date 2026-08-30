@@ -169,10 +169,6 @@ is_deeply $got, ['other'] or diag explain $got;
 $got = $all_rule->auto_vars('all', $m);
 ok exists $got->{'@'}, 'Rules.Vars.EXISTS';
 is_deeply [ keys %$got ], [qw(@ * ^ ? <)] or diag explain $got;
-my $ax_target = $m->target('a.x.o');
-my ($ax_rule) = @{ $m->rules($ax_target, 'a.x.o') };
-$got = $ax_rule->auto_vars('a.x.o', $m);
-is $got->{'*'}, 'a.x';
 
 my $recmake_fsmap = make_fsmap({
   Makefile => [ 1, "MK=make\nall: bar sany\nsany:\n\tcd subdir && \$(MK)\n\tsay hi\n" ],
@@ -251,6 +247,17 @@ for my $tuple ([undef, undef], [undef, 'subdir'], [qw(GNUmakefile subdir)]) {
   is_deeply $got, [qw(a.o all b.c b.o src/a.c)], 'targets after' or diag explain $got;
   $contents = do { local $/; open my $fh, '<', $tempfile; <$fh> };
   is $contents, "COMPILE -c -o a.o src/a.c\nCOMPILE -c -o b.o b.c\n";
+}
+
+$m = Make->new(FSFunctionMap => make_fsmap($vfs, undef), GNU => 1, InDir => undef);
+$m->parse('GNUmakefile');
+my $b_target = $m->target('b.o');
+my ($b_rule) = @{ $m->rules($b_target, 'b.o') };
+$got = $b_rule->auto_vars('b.o', $m);
+# my @KEYS = qw(@ * ^ ? <);
+for ([qw(@ b.o)], [qw(* b)], [qw(^ b.c)], [qw(? b.c)], [qw(< b.c)]) {
+  my ($var, $exp) = @$_;
+  is $got->{$var}, $exp, "Rules.Vars.$var";
 }
 
 done_testing;

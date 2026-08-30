@@ -28,7 +28,7 @@ my %DISPATCH = (
   '@' => sub { $_[2] },
   '*' => sub { $_[2] =~ s/\.[^.]+$//r },
   '^' => sub { join ' ', @{ $_[0]->prereqs } },
-  '?' => sub { join ' ', @{ $_[1]->out_of_date($_[2], $_[0]) } },
+  '?' => sub { join ' ', $_[1]->out_of_date($_[2], $_[0]) },
   '<' => sub { $_[0]->prereqs->[0] },
 );
 sub FETCH {
