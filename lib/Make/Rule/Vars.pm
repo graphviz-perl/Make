@@ -6,9 +6,8 @@ use Carp;
 use constant DEBUG => $ENV{MAKE_DEBUG};
 
 our $VERSION = '2.011';
-my @KEYS = qw( @ * ^ ? < );
-my $i;
-my %NEXTKEY = map +( $_ => ++$i ), @KEYS;
+my @KEYS = qw(@ * ^ ? <);
+my %NEXTKEY = map +($KEYS[$_] => $_+1), 0..$#KEYS;
 
 # Package to handle automatic variables pertaining to rules e.g. $@ $* $^ $?
 # by using tie to this package 'subsvars' can work with array of
@@ -19,30 +18,24 @@ sub TIEHASH {
   bless [ $rule, $info, $name ], $class;
 }
 
-sub FIRSTKEY {
-  $KEYS[0];
-}
+sub FIRSTKEY { $KEYS[0] }
 
-sub NEXTKEY {
-  my ( $self, $lastkey ) = @_;
-  $KEYS[ $NEXTKEY{$lastkey} ];
-}
+sub NEXTKEY { $KEYS[ $NEXTKEY{$_[1]} ] }
 
-sub EXISTS {
-  my ( $self, $key ) = @_;
-  exists $NEXTKEY{$key};
-}
+sub EXISTS { exists $NEXTKEY{$_[1]} }
 
+my %DISPATCH = (
+  '@' => sub { $_[0][2] },
+  '*' => sub { $_[0][2] =~ s/\.[^.]+$//r },
+  '^' => sub { join ' ', @{ $_[0][0]->prereqs } },
+  '?' => sub { join ' ', @{ $_[0][1]->out_of_date($_[0][2], $_[0][0]) } },
+  '<' => sub { $_[0][0]->prereqs->[0] },
+);
 sub FETCH {
   my ($self, $v)      = @_;
-  my ($rule, $info, $name) = @$self;
-  DEBUG and print STDERR "FETCH $v for ", $name, "\n";
-  return $name if $v eq '@';
-  return $name =~ s/\.[^.]+$//r if $v eq '*';
-  return join ' ', @{ $rule->prereqs }         if $v eq '^';
-  return join ' ', $info->out_of_date($name, $rule) if $v eq '?';
-  return ( @{ $rule->prereqs } )[0] if $v eq '<';
-  ();
+  DEBUG and print STDERR "FETCH $v for $self->[2]\n";
+  return unless my $sub = $DISPATCH{$v};
+  $sub->($self);
 }
 
 1;
