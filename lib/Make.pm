@@ -130,6 +130,7 @@ sub locate {
   my ($self, $file) = @_;
   my $fsmap    = $self->fsmap;
   my $readable = $fsmap->{file_readable};
+  return $file if $readable->(in_dir $fsmap, $self->{InDir}, $file);
   foreach my $key (sort keys %{ $self->{Vpath} }) {
     next unless defined(my $Pat = patmatch($key, $file));
     foreach my $dir (@{ $self->{Vpath}{$key} }) {

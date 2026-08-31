@@ -125,6 +125,7 @@ SKIP: {
   $m->parse;
   eval { $m->Make('all') };
   is $@, '', 'no error making "all"';
+  isnt $m->locate('Changes'), undef, 'locate found local file';
 }
 
 {
