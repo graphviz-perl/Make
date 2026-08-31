@@ -200,6 +200,7 @@ space = $() $()
 tempfile = %s
 all: ; @"%s" -e "print shift().qq{\n}" "$(space)" >"$(tempfile)"
 .PHONY: all
+filetest: ; $(file >$(tempfile),text)
 EOF
 ok $m->phony('all'),  'all is phony';
 is_deeply $got=[$m->Print], [
@@ -214,6 +215,9 @@ is_deeply $got=[$m->Script], [
 $m->Make;
 $contents = do { local $/; open my $fh, '<', $tempfile; <$fh> };
 is $contents, " \n";
+$m->Make('filetest');
+$contents = do { local $/; open my $fh, '<', $tempfile; <$fh> };
+is $contents, "text\n";
 
 $got = [ Make::parse_args(qw(all VAR=value)) ];
 is_deeply $got, [ [ [qw(VAR value)] ], ['all'] ] or diag explain $got;

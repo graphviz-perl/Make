@@ -2,6 +2,7 @@ package Make::Functions;
 
 use strict;
 use warnings;
+use Carp qw(confess);
 
 our $VERSION = '2.011';
 
@@ -169,6 +170,42 @@ sub mktmp {
   push @temp_handles, $fh;
   print $fh $text_input;
   $fh->filename;
+}
+
+=head2 file
+
+  $(file >thefile)           # "thefile" will be empty
+  $(file >thefile,some text) # "thefile" will have "some text\n"
+  $(file >> thefile,more)    # "thefile" will have "some text\nmore\n"
+  $(file <thefile,something) # error
+  $(file <thefile)           # replaced literally in Makefile with contents
+
+Like the GNU make function: takes a (space-separated) argument: C<op>
+(maybe space) C<file>, then maybe a comma-separated text to write in the file.
+
+C<op> can be C<E<lt>> (read), C<E<gt>> (overwrite), or C<E<gt>E<gt>> (append).
+
+If "read", the macro will be replaced with the contents of the file,
+or none if the file could not be opened.
+
+=cut
+
+my %VALID_OP = map +($_=>1), qw(< > >>);
+sub file {
+  my ($fsmap, $arg, $text) = @_;
+  confess "file: no fsmap given" if !defined $fsmap;
+  die "file: could not get op from '$arg'\n" unless $arg =~ s#\s*([<>]+)\s*##;
+  my $op = $1;
+  die "file: invalid op '$op'\n" if !$VALID_OP{$op};
+  die "file: cannot give text for '$op'\n" if $op eq '<' and defined $text;
+  if ($op eq '<') {
+    return '' if !-r $arg;
+    return do { local $/; my $fh = $fsmap->{fh_open}->($op, $arg); <$fh> };
+  }
+  my $fh = $fsmap->{fh_open}->($op, $arg);
+  $text .= "\n" if substr($text, -1, 1) ne "\n";
+  print $fh $text;
+  '';
 }
 
 1;
