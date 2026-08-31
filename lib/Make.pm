@@ -19,7 +19,6 @@ use constant DEBUG => $ENV{MAKE_DEBUG};
 require Make::Functions;
 
 my $DEFAULTS_AST;
-my %date;
 my %fs_function_map = (
   glob => sub { glob $_[0] },
   fh_open => sub { open my $fh, $_[0], $_[1] or die "open @_: $!"; $fh },
@@ -179,10 +178,7 @@ sub rules {
 sub date {
   my ($self, $name) = @_;
   my $fsmap = $self->fsmap;
-  unless (exists $date{$name}) {
-    $date{$name} = $self->fsmap->{mtime}->(in_dir $fsmap, $self->{InDir}, $name);
-  }
-  $date{$name};
+  $fsmap->{mtime}->(in_dir $fsmap, $self->{InDir}, $name);
 }
 
 # See if we can find a %.o : %.c rule for target
@@ -525,7 +521,6 @@ sub name_decode {
 
 sub exec {
   my ($self, $line) = @_;
-  undef %date;
   my $parsed = parse_cmdline($line);
   print "$parsed->{line}\n" unless $parsed->{silent};
   return if $parsed->{line} !~ /\S/;
