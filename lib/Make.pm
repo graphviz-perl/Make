@@ -688,6 +688,7 @@ sub recurse {
 sub out_of_date {
   my ($self, $name, $rule) = @_;
   confess "rule not given" if !defined $rule;
+  DEBUG and print STDERR "out_of_date: considering $name\n";
   my @dep   = ();
   my $tdate = $self->date($name);
   my $count = 0;
