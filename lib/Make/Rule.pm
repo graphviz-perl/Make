@@ -32,8 +32,11 @@ sub auto_vars {
 sub exp_recipe {
   my ($self, $name, $info) = @_;
   confess "info not given" if !defined $info;
-  my @subs_args = ($info->function_packages, [ $self->auto_vars($name, $info), $info->vars, \%ENV ]);
-  my @cmd = map Make::subsvars($_, @subs_args), @{ $self->recipe };
+  my @cmd = map Make::subsvars(
+    $_, $info->function_packages,
+    [ $self->auto_vars($name, $info), $info->vars, \%ENV ],
+    $info->fsmap,
+  ), @{ $self->recipe };
   wantarray ? @cmd : \@cmd;
 }
 
