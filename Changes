@@ -4,6 +4,7 @@
 - minimum Perl now 5.14
 - stop infinite loop on cmake "disable VCS implicit rules"
 - Make.Print now returns strings, doesn't print them
+- add "exec" to FSFunctionMap
 
 2.011 2020-12-23
 - add_suffix function - thanks @jwrightecs

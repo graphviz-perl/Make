@@ -253,7 +253,7 @@ for my $tuple ([undef, undef], [undef, 'subdir'], [qw(GNUmakefile subdir)]) {
   is $contents, "COMPILE -c -o a.o src/a.c\nCOMPILE -c -o b.o b.c\n";
 }
 
-$m = Make->new(FSFunctionMap => make_fsmap($vfs, undef), GNU => 1, InDir => undef);
+$m = Make->new(FSFunctionMap => make_fsmap($vfs, undef), GNU => 1);
 $m->parse('GNUmakefile');
 my $b_target = $m->target('b.o');
 my ($b_rule) = @{ $m->rules($b_target, 'b.o') };
@@ -287,9 +287,10 @@ sub make_fsmap {
       $fh2file_tuple{$fh} = $file_tuple;
       $fh;
     },
-    fh_write      => sub { my $fh = shift; $fh2file_tuple{$fh}[0] = time; print {$fh} @_ },
+    fh_write => sub { my $fh = shift; $fh2file_tuple{$fh}[0] = time; print {$fh} @_ },
     file_readable => sub { exists $vfs_copy{ $_[0] } },
     mtime         => sub { ($vfs_copy{ $_[0] } || [])->[0] },
     is_abs        => sub { $_[0] =~ /^\// },
+    exec => sub { my @lines = `@_`; ($?, @lines) },
   };
 }

@@ -14,9 +14,9 @@ sub wildcard {
 
 sub shell {
   my ( $fsmap, @args ) = @_;
-  my $value = `@args`;
-  chomp $value;
-  split "\n", $value;
+  my (undef, @lines) = $fsmap->{exec}->(@args);
+  chomp $lines[-1] if @lines;
+  @lines;
 }
 
 sub addprefix {

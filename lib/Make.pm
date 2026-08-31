@@ -27,6 +27,7 @@ my %fs_function_map = (
   file_readable => sub { -r $_[0] },
   mtime => sub { (stat $_[0])[9] },
   is_abs => sub { goto &file_name_is_absolute },
+  exec => sub { my @lines = `@_`; ($?, @lines) },
 );
 my @RECMAKE_FINDS = \&_find_recmake_cd;
 
@@ -523,7 +524,8 @@ sub exec {
   undef %date;
   my $parsed = parse_cmdline($line);
   print "$parsed->{line}\n" unless $parsed->{silent};
-  my $code = system $parsed->{line};
+  my ($code, @lines) = $self->fsmap->{exec}->($parsed->{line});
+  print for @lines;
   if ($code && !$parsed->{can_fail}) {
     $code >>= 8;
     die "Code $code from $parsed->{line}";
@@ -850,7 +852,7 @@ file-system. Created to help testing, but might be more widely useful.
 Defaults to code accessing the actual local filesystem. The various
 functions are expected to return real Perl filehandles. Relevant keys:
 C<glob>, C<fh_open>, C<fh_write>, C<mtime>, C<file_readable>,
-C<is_abs>.
+C<is_abs>. Added in 2.012: C<exec>.
 
 =head3 InDir
 
