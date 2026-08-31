@@ -51,7 +51,7 @@ Runs the command, returns the output with all newlines replaced by spaces.
 sub shell {
   my ( $fsmap, @args ) = @_;
   my (undef, @lines) = $fsmap->{exec}->(@args);
-  chomp $lines[-1] if @lines;
+  chomp @lines;
   @lines;
 }
 
