@@ -309,5 +309,6 @@ sub make_fsmap {
     mtime         => sub { ($vfs_copy{ $_[0] } || [])->[0] },
     is_abs        => sub { $_[0] =~ /^\// },
     exec => sub { my @lines = `@_`; ($?, @lines) },
+    vfs_copy => \%vfs_copy,
   };
 }
