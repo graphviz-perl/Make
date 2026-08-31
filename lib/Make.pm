@@ -95,7 +95,7 @@ sub has_target {
 
 sub targets {
   my ($self) = @_;
-  grep !/%|^\./, keys %{ $self->{Depend} };
+  keys %{ $self->{Depend} };
 }
 
 # Utility routine for patching %.o type 'patterns'
