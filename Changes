@@ -7,6 +7,7 @@
 - add "exec" to FSFunctionMap
 - locate method now finds local files
 - now no failure to build file that exists
+- recurse now knows chain of inducing targets
 
 2.011 2020-12-23
 - add_suffix function - thanks @jwrightecs

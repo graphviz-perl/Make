@@ -663,18 +663,18 @@ sub apply {
   $targets = [ $self->{Vars}{'.DEFAULT_GOAL'} ] unless @$targets;
   my @bad_targets = grep !($self->has_target($_) || defined $self->locate($_)), @$targets;
   die "Cannot '$method' (@args) - no target @bad_targets" if @bad_targets;
-  map $self->recurse($method, $_), @$targets;
+  map $self->recurse($method, $_, []), @$targets;
 }
 
 # as part of "out of date" processing, if any child is remade, this needs too
 sub recurse {
-  my ($self, $method, $target) = @_;
+  my ($self, $method, $target, $inducing) = @_;
   my $target_obj = $self->target($target);
   return if $target_obj->done($self->pass);
   my @results;
   DEBUG and print STDERR "Build $target\n";
   for my $rule (@{ $self->rules($target_obj, $target) }) {
-    push @results, map $self->recurse($method, $_), @{ $rule->prereqs };
+    push @results, map $self->recurse($method, $_, [@$inducing, $target]), @{ $rule->prereqs };
     push @results, $rule->$method($target, $self);
   }
   @results;
