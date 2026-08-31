@@ -7,64 +7,6 @@ our $VERSION = '2.011';
 
 my @temp_handles;    # so they don't get destroyed before end of program
 
-sub wildcard {
-  my ( $fsmap, @args ) = @_;
-  map $fsmap->{glob}->($_), @args;
-}
-
-sub shell {
-  my ( $fsmap, @args ) = @_;
-  my (undef, @lines) = $fsmap->{exec}->(@args);
-  chomp $lines[-1] if @lines;
-  @lines;
-}
-
-sub addprefix {
-  my ( $fsmap, $prefix, $text_input ) = @_;
-  map $prefix . $_, @{ Make::tokenize($text_input) };
-}
-
-sub addsuffix {
-  my ( $fsmap, $suffix, $text_input ) = @_;
-  map $_ . $suffix, @{ Make::tokenize($text_input) };
-}
-
-sub notdir {
-  my ( $fsmap, $text_input ) = @_;
-  my @files = @{ Make::tokenize($text_input) };
-  s#^.*/## for @files;
-  @files;
-}
-
-sub dir {
-  my ( $fsmap, $text_input ) = @_;
-  my @files = @{ Make::tokenize($text_input) };
-  foreach (@files) {
-      $_ = './' unless s#^(.*)/[^/]*$#$1#;
-  }
-  @files;
-}
-
-sub subst {
-  my ($fsmap, $from, $to, $value) = @_;
-  $from = quotemeta $from;
-  $value =~ s/$from/$to/gr;
-}
-
-sub patsubst {
-  my ($fsmap, $from, $to, $value) = @_;
-  $from = quotemeta $from;
-  $value =~ s/$from(?=(?:\s|\z))/$to/gr;
-}
-
-sub mktmp {
-  my ( $fsmap, $text_input ) = @_;
-  my $fh = File::Temp->new;    # default UNLINK = 1
-  push @temp_handles, $fh;
-  print $fh $text_input;
-  $fh->filename;
-}
-
 =head1 NAME
 
 Make::Functions - Functions in Makefile macros
@@ -93,9 +35,25 @@ as in GNU make. The first arg is a L<Make/FSFunctionMap>.
 
 Returns all its args expanded using C<glob>.
 
+=cut
+
+sub wildcard {
+  my ( $fsmap, @args ) = @_;
+  map $fsmap->{glob}->($_), @args;
+}
+
 =head2 shell
 
 Runs the command, returns the output with all newlines replaced by spaces.
+
+=cut
+
+sub shell {
+  my ( $fsmap, @args ) = @_;
+  my (undef, @lines) = $fsmap->{exec}->(@args);
+  chomp $lines[-1] if @lines;
+  @lines;
+}
 
 =head2 addprefix
 
@@ -104,6 +62,13 @@ Prefixes each word in the second arg with first arg:
     $(addprefix x/,1 2)
     # becomes x/1 x/2
 
+=cut
+
+sub addprefix {
+  my ( $fsmap, $prefix, $text_input ) = @_;
+  map $prefix . $_, @{ Make::tokenize($text_input) };
+}
+
 =head2 addsuffix
 
 Suffixes each word in the second arg with first arg:
@@ -111,13 +76,40 @@ Suffixes each word in the second arg with first arg:
     $(addsuffix /x,1 2)
     # becomes 1/x 2/x
 
+=cut
+
+sub addsuffix {
+  my ( $fsmap, $suffix, $text_input ) = @_;
+  map $_ . $suffix, @{ Make::tokenize($text_input) };
+}
+
 =head2 notdir
 
 Returns everything after last C</>.
 
+=cut
+
+sub notdir {
+  my ( $fsmap, $text_input ) = @_;
+  my @files = @{ Make::tokenize($text_input) };
+  s#^.*/## for @files;
+  @files;
+}
+
 =head2 dir
 
 Returns everything up to last C</>. If no C</>, returns C<./>.
+
+=cut
+
+sub dir {
+  my ( $fsmap, $text_input ) = @_;
+  my @files = @{ Make::tokenize($text_input) };
+  foreach (@files) {
+      $_ = './' unless s#^(.*)/[^/]*$#$1#;
+  }
+  @files;
+}
 
 =head2 subst
 
@@ -137,10 +129,26 @@ expansion for some scenarios:
     bar = $(subst $(space),$(comma),$(foo))
     # bar is now "a,b,c"
 
+=cut
+
+sub subst {
+  my ($fsmap, $from, $to, $value) = @_;
+  $from = quotemeta $from;
+  $value =~ s/$from/$to/gr;
+}
+
 =head2 patsubst
 
 Like L</subst>, but only operates when the pattern is at the end of
 a word.
+
+=cut
+
+sub patsubst {
+  my ($fsmap, $from, $to, $value) = @_;
+  $from = quotemeta $from;
+  $value =~ s/$from(?=(?:\s|\z))/$to/gr;
+}
 
 =head2 mktmp
 
@@ -153,13 +161,23 @@ whose name is returned. E.g.:
     $(mktmp $(shell echo hi))
     # becomes a temporary filename, and that file contains "hi"
 
+=cut
+
+sub mktmp {
+  my ( $fsmap, $text_input ) = @_;
+  my $fh = File::Temp->new;    # default UNLINK = 1
+  push @temp_handles, $fh;
+  print $fh $text_input;
+  $fh->filename;
+}
+
+1;
+
+__END__
+
 =head1 COPYRIGHT AND LICENSE
 
 Copyright (c) 1996-1999 Nick Ing-Simmons.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
-
-=cut
-
-1;
