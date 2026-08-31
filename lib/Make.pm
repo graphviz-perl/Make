@@ -528,11 +528,12 @@ sub exec {
   undef %date;
   my $parsed = parse_cmdline($line);
   print "$parsed->{line}\n" unless $parsed->{silent};
+  return if $parsed->{line} !~ /\S/;
   my ($code, @lines) = $self->fsmap->{exec}->($parsed->{line});
   print for @lines;
   if ($code && !$parsed->{can_fail}) {
     $code >>= 8;
-    die "Code $code from $parsed->{line}";
+    die "Code $code from '$parsed->{line}'";
   }
   ();
 }
