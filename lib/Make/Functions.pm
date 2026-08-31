@@ -204,7 +204,7 @@ sub file {
   }
   my $fh = $fsmap->{fh_open}->($op, $arg);
   $text .= "\n" if substr($text, -1, 1) ne "\n";
-  print $fh $text;
+  $fsmap->{fh_write}->($fh, $text);
   '';
 }
 
