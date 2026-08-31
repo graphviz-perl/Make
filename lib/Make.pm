@@ -661,7 +661,7 @@ sub apply {
   my ($vars, $targets) = parse_args(@args);
   $self->set_var(@$_) for @$vars;
   $targets = [ $self->{Vars}{'.DEFAULT_GOAL'} ] unless @$targets;
-  my @bad_targets = grep !$self->has_target($_), @$targets;
+  my @bad_targets = grep !($self->has_target($_) || defined $self->locate($_)), @$targets;
   die "Cannot '$method' (@args) - no target @bad_targets" if @bad_targets;
   map $self->recurse($method, $_), @$targets;
 }

@@ -126,6 +126,8 @@ SKIP: {
   eval { $m->Make('all') };
   is $@, '', 'no error making "all"';
   isnt $m->locate('Changes'), undef, 'locate found local file';
+  eval { $m->Make('Changes') };
+  is $@, '', 'no error making "Changes"';
 }
 
 {
