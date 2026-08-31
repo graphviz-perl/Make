@@ -285,7 +285,7 @@ done_testing;
 
 sub make_fsmap {
   my ($vfs, $maybe_prefix) = @_;
-  my %vfs_copy = map +(join('/', grep defined, $maybe_prefix, $_) => $vfs->{$_}), keys %$vfs;
+  my %vfs_copy = map +(join('/', grep defined, $maybe_prefix, $_) => [@{ $vfs->{$_}}]), keys %$vfs;
   my %fh2file_tuple;
   {
     glob => sub {
