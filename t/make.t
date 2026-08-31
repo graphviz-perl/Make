@@ -226,6 +226,8 @@ CC = @"%s" -e "print qq[@ARGV\n]" COMPILE >>"$(tempfile)"
 .c.o: ; $(CC) -c -o $@ $<
 all: $(objs)
 .PHONY: all
+othertarg: notthere
+.PHONY: othertarg
 # Disable VCS-based implicit rules. (from cmake-generated)
 %% : %%,v # double because sprintf
 EOF
@@ -248,10 +250,10 @@ for my $tuple ([undef, undef], [undef, 'subdir'], [qw(GNUmakefile subdir)]) {
   $got = $m->rules($m->target('a.o'), 'a.o')->[0]->prereqs;
   is_deeply $got, ['src/a.c'] or diag explain $got;
   $got = [ sort $m->targets ];
-  is_deeply $got, [qw(a.o all b.o)], 'targets' or diag explain $got;
+  is_deeply $got, [qw(a.o all b.o notthere othertarg)], 'targets' or diag explain $got;
   $m->Make('all');
   $got = [ sort $m->targets ];
-  is_deeply $got, [qw(a.o all b.c b.o src/a.c)], 'targets after' or diag explain $got;
+  is_deeply $got, [qw(a.o all b.c b.o notthere othertarg src/a.c)], 'targets after' or diag explain $got;
   $contents = do { local $/; open my $fh, '<', $tempfile; <$fh> };
   is $contents, "COMPILE -c -o a.o src/a.c\nCOMPILE -c -o b.o b.c\n";
 }
@@ -268,6 +270,12 @@ for ([qw(@ b.o)], [qw(* b)], [qw(^ b.c)], [qw(? b.c)], [qw(< b.c)]) {
 }
 eval { $m->Make('notsaid') };
 like $@, qr/Cannot 'Make' \(notsaid\)/, 'error to make bad target';
+eval { $m->Make('notsaid.o') };
+like $@, qr/Cannot 'Make' \(notsaid.o\)/, 'error to make bad target with rule';
+eval { $m->Make('notthere') };
+like $@, qr/Cannot 'Make' \(notthere\)/, 'error to make bad prereq';
+eval { $m->Make('othertarg') };
+like $@, qr/Cannot 'Make' \(othertarg->notthere\)/, 'error to make impossible target';
 
 done_testing;
 
