@@ -124,7 +124,7 @@ SKIP: {
   isa_ok $m, 'Make';
   $m->parse;
   eval { $m->Make('all') };
-  is $@, '',;
+  is $@, '', 'no error making "all"';
 }
 
 {
