@@ -263,6 +263,8 @@ for ([qw(@ b.o)], [qw(* b)], [qw(^ b.c)], [qw(? b.c)], [qw(< b.c)]) {
   my ($var, $exp) = @$_;
   is $got->{$var}, $exp, "Rules.Vars.$var";
 }
+eval { $m->Make('notsaid') };
+like $@, qr/Cannot 'Make' \(notsaid\)/, 'error to make bad target';
 
 done_testing;
 
