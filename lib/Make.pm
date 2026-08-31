@@ -83,7 +83,7 @@ sub suffixes {
 sub target {
   my ($self, $target) = @_;
   return $self->{Pattern}{$target} //= Make::Target->new if $target =~ /%/;
-  return $self->{Dot}{$target} //= Make::Target->new if $target =~ /^\./;
+  return $self->{Dot}{$target} //= Make::Target->new if $target =~ /^\.[^.]/;
   $self->{Depend}{$target} //= Make::Target->new;
 }
 
@@ -159,7 +159,9 @@ sub dotrules {
       $target->add_rule($rule, $name_t);
     }
   }
-  ();
+  my @left = keys %$Dot;
+  @{ $self->{Depend} }{ @left } = delete @$Dot{ @left };
+  @left;
 }
 
 sub rules {
@@ -478,9 +480,9 @@ sub parse {
   my $ast = parse_makefile($fh);
   $self->process_ast_bit(@$_) for @$ast;
   undef $fh;
-  # Next bits should really be done 'lazy' on need.
-  $self->pseudos;     # Pull out .SUFFIXES etc.
-  $self->dotrules;    # Convert .c.o into %.o : %.c
+  $self->pseudos; # Pull out .SUFFIXES etc.
+  my @left = sort $self->dotrules; # Convert .c.o into %.o : %.c
+  warn "Unprocessed '.' rules (did you mean to add .SUFFIXES?): @left\n" if @left;
   $self;
 }
 
