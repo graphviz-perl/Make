@@ -281,6 +281,27 @@ like $@, qr/Cannot 'Make' \(notthere\)/, 'error to make bad prereq';
 eval { $m->Make('othertarg') };
 like $@, qr/Cannot 'Make' \(othertarg->notthere\)/, 'error to make impossible target';
 
+$vfs = {
+  'a.exe' => [ 2, 'hi' ],
+  'a.o' => [ 1, 'yo' ],
+  'a.c' => [ 3, 'hi' ],
+  'outfile' => [ 1, '' ],
+  Makefile => [ 1, <<'EOF',
+.c.o:   ; $(file >>outfile,COMPILE -c -o $@ $<) $(file >>$@,from $<)
+.o.exe: ; $(file >>outfile,COMPILE -o $@ $<)    $(file >>$@,from $<)
+.SUFFIXES: .exe .o
+all: a.exe
+.PHONY: all
+EOF
+  ],
+};
+$fsmap = make_fsmap($vfs, undef);
+$m = Make->new(FSFunctionMap => $fsmap);
+$m->parse;
+truncate $tempfile, 0;
+$m->Make('all');
+is $fsmap->{vfs_copy}{outfile}[1], "COMPILE -c -o a.o a.c\nCOMPILE -o a.exe a.o\n";
+
 done_testing;
 
 sub make_fsmap {
