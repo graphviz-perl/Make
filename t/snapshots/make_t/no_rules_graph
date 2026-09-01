@@ -20,7 +20,7 @@
       'sany' => {
         '0' => {
           'recipe' => [
-            'cd subdir && $(MAKE)',
+            'cd subdir && $(MAKE) -s',
             'say hi'
           ],
           'recipe_raw' => $VAR1->[1]{'sany'}{'sany'}{'0'}{'recipe'}

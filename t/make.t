@@ -174,7 +174,7 @@ ok exists $got->{'@'}, 'Rules.Vars.EXISTS';
 is_deeply [ keys %$got ], [qw(@ * ^ ? <)] or diag explain $got;
 
 my $recmake_fsmap = make_fsmap({
-  Makefile => [ 1, "all: bar sany\nsany:\n\tcd subdir && \$(MAKE)\n\tsay hi\n" ],
+  Makefile => [ 1, "all: bar sany\nsany:\n\tcd subdir && \$(MAKE) -s\n\tsay hi\n" ],
   'subdir/Makefile' => [ 1, "all: sbar sfoo ../first\n\tcd subsubdir && \$(MAKE)\n" ],
   'subdir/subsubdir/Makefile' => [ 1, "all: /top/level\n\techo L3\n" ],
 });

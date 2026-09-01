@@ -35,9 +35,9 @@ sub _find_recmake_cd {
   my ($before, $makeargs) = @_;
   my $dir = $before =~ /\bcd\s+([^\s;&]+)\s*(?:;|&&)/ ? $1 : undef;
   require Getopt::Long;
-  local @ARGV = Text::ParseWords::shellwords($makeargs);
-  Getopt::Long::GetOptions("f=s" => \my $makefile);
-  my ($vars, $targets) = parse_args(@ARGV);
+  Getopt::Long::Configure('pass_through');
+  my ($ret, $args) = Getopt::Long::GetOptionsFromString($makeargs, "f=s" => \my $makefile);
+  my ($vars, $targets) = parse_args(grep !/^-/, @$args);
   ($dir, $makefile, $vars, $targets);
 }
 

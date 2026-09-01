@@ -6,7 +6,7 @@
     },
     'rule:sany:0' => {
       'recipe' => [
-        'cd subdir && $(MAKE)',
+        'cd subdir && $(MAKE) -s',
         'say hi'
       ],
       'recipe_raw' => $VAR1->[0]{'rule:sany:0'}{'recipe'}
