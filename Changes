@@ -11,6 +11,7 @@
 - now throws exception if unable to build prerequisite
 - add Make::Function::file
 - add Rule.expand
+- recursive-make detection now like GNU Make, relying on explicit $(MAKE)
 
 2.011 2020-12-23
 - add_suffix function - thanks @jwrightecs

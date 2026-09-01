@@ -6,17 +6,17 @@
     },
     'rule:sany:0' => {
       'recipe' => [
-        'cd subdir && $(MK)',
+        'cd subdir && $(MAKE)',
         'say hi'
       ],
       'recipe_raw' => $VAR1->[0]{'rule:sany:0'}{'recipe'}
     },
     'rule:subdir/all:0' => {
       'recipe' => [
-        'cd subsubdir && make'
+        'cd subsubdir && $(MAKE)'
       ],
       'recipe_raw' => [
-        'cd subsubdir && make'
+        'cd subsubdir && $(MAKE)'
       ]
     },
     'rule:subdir/subsubdir/all:0' => {

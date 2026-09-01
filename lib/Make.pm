@@ -31,9 +31,9 @@ my %fs_function_map = (
 my @RECMAKE_FINDS = \&_find_recmake_cd;
 
 sub _find_recmake_cd {
-  my ($cmd) = @_;
-  return unless $cmd =~ /\bcd\s+([^\s;&]+)\s*(?:;|&&)\s*make\s*(.*)/;
-  my ($dir, $makeargs) = ($1, $2);
+  return if @_ != 2;
+  my ($before, $makeargs) = @_;
+  my $dir = $before =~ /\bcd\s+([^\s;&]+)\s*(?:;|&&)/ ? $1 : undef;
   require Getopt::Long;
   local @ARGV = Text::ParseWords::shellwords($makeargs);
   Getopt::Long::GetOptions("f=s" => \my $makefile);
@@ -549,11 +549,14 @@ sub _rmf_search_rule {
   my ($self, $rule, $target, $rule_no, $rmfs) = @_;
   my @found;
   my $line = -1;
-  for my $cmd ($rule->exp_recipe($target, $self)) {
+  for my $cmd (@{ $rule->recipe }) {
     $line++;
+    my @parts = split /\$\(MAKE\)/, $cmd, -1;
+    next if @parts < 2;
+    @parts = map $rule->expand($_, $target, $self), @parts;
     my @rec_vars;
     for my $rf (@$rmfs) {
-      last if @rec_vars = $rf->($cmd);
+      last if @rec_vars = $rf->(@parts);
     }
     next unless @rec_vars;
     push @found, [ $target, $rule_no, $line, @rec_vars ];

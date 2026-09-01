@@ -26,7 +26,7 @@
       'sany' => {
         '0' => {
           'recipe' => [
-            'cd subdir && $(MK)',
+            'cd subdir && $(MAKE)',
             'say hi'
           ],
           'recipe_raw' => $VAR1->[1]{'sany'}{'sany'}{'0'}{'recipe'}
@@ -40,10 +40,10 @@
       'first' => {
         '0' => {
           'recipe' => [
-            'cd subsubdir && make'
+            'cd subsubdir && $(MAKE)'
           ],
           'recipe_raw' => [
-            'cd subsubdir && make'
+            'cd subsubdir && $(MAKE)'
           ]
         }
       },
