@@ -199,8 +199,10 @@ sub file {
   die "file: invalid op '$op'\n" if !$VALID_OP{$op};
   die "file: cannot give text for '$op'\n" if $op eq '<' and defined $text;
   if ($op eq '<') {
-    return '' if !-r $arg;
-    return do { local $/; my $fh = $fsmap->{fh_open}->($op, $arg); <$fh> };
+    return '' if !$fsmap->{file_readable}->($arg);
+    my $text = do { local $/; my $fh = $fsmap->{fh_open}->($op, $arg); <$fh> };
+    chomp $text;
+    return $text;
   }
   my $fh = $fsmap->{fh_open}->($op, $arg);
   $text .= "\n" if substr($text, -1, 1) ne "\n";
