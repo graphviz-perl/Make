@@ -38,7 +38,7 @@ sub _find_recmake_cd {
   local @ARGV = Text::ParseWords::shellwords($makeargs);
   Getopt::Long::GetOptions("f=s" => \my $makefile);
   my ($vars, $targets) = parse_args(@ARGV);
-  return ($dir, $makefile, $vars, $targets);
+  ($dir, $makefile, $vars, $targets);
 }
 
 sub maybe_store {
@@ -71,12 +71,12 @@ sub load_modules {
 
 sub phony {
   my ($self, $name) = @_;
-  return exists $self->{PHONY}{$name};
+  exists $self->{PHONY}{$name};
 }
 
 sub suffixes {
   my ($self) = @_;
-  return sort keys %{ $self->{'SUFFIXES'} };
+  sort keys %{ $self->{'SUFFIXES'} };
 }
 
 sub target {
@@ -106,10 +106,7 @@ sub patmatch {
   $pattern_cache{$pat} = join '(.*)', map quotemeta, split /%/, $pat
     if !exists $pattern_cache{$pat};
   $pat = $pattern_cache{$pat};
-  if ($target =~ /^$pat$/) {
-    return $1;
-  }
-  ();
+  $target =~ /^$pat$/ ? $1 : ();
 }
 
 sub in_dir {
@@ -372,7 +369,7 @@ sub process_ast_bit {
     my $rule = Make::Rule->new($kind, $prereqs, $cmnds, $cmnds_raw);
     $self->target($_)->add_rule($rule, $_) for @$targets;
   }
-  return;
+  ();
 }
 
 #
@@ -561,7 +558,7 @@ sub _rmf_search_rule {
     next unless @rec_vars;
     push @found, [ $target, $rule_no, $line, @rec_vars ];
   }
-  return @found;
+  @found;
 }
 
 sub find_recursive_makes {
