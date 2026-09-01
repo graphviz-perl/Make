@@ -112,8 +112,8 @@ sub patmatch {
 sub in_dir {
   my ($fsmap, $dir, $file) = @_;
   return $file if defined $file and $fsmap->{is_abs}->($file);
-  my @dir  = defined($dir) ? split /\//, $dir : ();
-  my @file = split /\//, $file;
+  my @dir = defined($dir) ? split /\//, $dir : ();
+  my @file = defined($file) ? split /\//, $file : ();
   while (@dir and @file and $file[0] eq '..') {
     # normalise out ../ in $file - no account taken of symlinks
     shift @file;
@@ -642,10 +642,10 @@ sub as_graph {
           $g->ingest($g2);
         }
         if ($no_rules) {
-          $g->add_edge($from, $_) for map "$dir/$_", @$targets;
+          $g->add_edge($from, $_) for map join('/', grep defined, $dir, $_), @$targets;
         } else {
           $g->set_edge_attribute($from, $_, fromline => $line)
-            for map name_encode([ 'target', "$dir/$_" ]), @$targets;
+            for map name_encode([ 'target', join('/', grep defined, $dir, $_) ]), @$targets;
         }
       }
     }
