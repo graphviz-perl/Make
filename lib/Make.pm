@@ -432,9 +432,8 @@ sub parse_makefile {
 
 sub pseudos {
   my $self = shift;
-  foreach my $key (qw(SUFFIXES PHONY PRECIOUS PARALLEL)) {
+  foreach my $key (qw(DELETE_ON_ERROR SUFFIXES PHONY PRECIOUS PARALLEL SILENT)) {
     my $name = ".$key";
-    delete $self->{Depend}{$name};
     my $t = delete $self->{Dot}{$name};
     if (defined $t) {
       $self->{$key} = {};
