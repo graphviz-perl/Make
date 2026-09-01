@@ -184,9 +184,9 @@ sub patrule {
   my ($self, $target, $kind) = @_;
   DEBUG and print STDERR "Trying pattern for $target\n";
   foreach my $key (sort keys %{ $self->{Pattern} }) {
-    DEBUG and print STDERR " Pattern $key trying\n";
-    next unless defined(my $Pat = patmatch($key, $target));
-    DEBUG and print STDERR " Pattern $key matched ($Pat)\n";
+    my $Pat = patmatch($key, $target);
+    DEBUG and print STDERR " Pattern $key matched (@{[$Pat//'NO']})\n";
+    next if !defined $Pat;
     my $t = $self->{Pattern}{$key};
     foreach my $rule (@{ $self->rules($t, $key) }) {
       my @dep = @{ $rule->prereqs };
@@ -577,10 +577,11 @@ sub find_recursive_makes {
 
 sub as_graph {
   my ($self, %options) = @_;
-  my ($no_rules, $recursive_make) = @options{qw(no_rules recursive_make)};
+  $options{$_} ||= {} for qw(recipe_cache seen);
+  my ($no_rules, $recursive_make, $recipe_cache, $seen) =
+    @options{qw(no_rules recursive_make recipe_cache seen)};
   require Graph;
   my $g = Graph->new($no_rules ? (multiedged => 1) : ());
-  my (%recipe_cache, %seen);
   my $rmfs      = $self->{RecursiveMakeFinders};
   my $fsmap     = $self->fsmap;
   my $fr        = $fsmap->{file_readable};
@@ -602,8 +603,8 @@ sub as_graph {
       if ($no_rules) {
         $from_id = $node_name;
       } else {
-        $from_id = $recipe_cache{$recipe}
-          || ($recipe_cache{$recipe} = name_encode([ 'rule', $target, $rule_no ]));
+        $from_id = $recipe_cache->{$recipe}
+          || ($recipe_cache->{$recipe} = name_encode([ 'rule', $target, $rule_no ]));
         $g->set_vertex_attributes($from_id, $recipe_hash);
         $g->add_edge($node_name, $from_id);
       }
@@ -626,7 +627,8 @@ sub as_graph {
         my $indir_makefile = $self->find_makefile($makefile, $dir);
         next unless $indir_makefile && $fr->($indir_makefile);
         my $cache_key = join ' ', $indir_makefile, sort map join('=', @$_), @$vars;
-        if (!$seen{$cache_key}++) {
+        DEBUG and print STDERR "as_graph recursing into '$cache_key' (cached=@{[$seen->{$cache_key}//'no']})\n";
+        if (!$seen->{$cache_key}++) {
           my $make2 = ref($self)->new(%make_args, InDir => in_dir($fsmap, $InDir, $dir));
           $make2->parse($makefile);
           $make2->set_var(@$_) for @$vars;
