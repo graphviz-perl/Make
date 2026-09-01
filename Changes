@@ -10,6 +10,7 @@
 - recurse now knows chain of inducing targets
 - now throws exception if unable to build prerequisite
 - add Make::Function::file
+- add Rule.expand
 
 2.011 2020-12-23
 - add_suffix function - thanks @jwrightecs

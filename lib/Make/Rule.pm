@@ -25,19 +25,23 @@ sub auto_vars {
   my ($self, $name, $info) = @_;
   confess "info not given" if !defined $info;
   tie my %var, 'Make::Rule::Vars', $self, $info, $name;
-  return \%var;
+  \%var;
 }
 
-# - May need vpath processing
 sub exp_recipe {
   my ($self, $name, $info) = @_;
   confess "info not given" if !defined $info;
-  my @cmd = map Make::subsvars(
-    $_, $info->function_packages,
+  my @cmd = map $self->expand($_, $name, $info), @{ $self->recipe };
+  wantarray ? @cmd : \@cmd;
+}
+
+sub expand {
+  my ($self, $text, $name, $info) = @_;
+  Make::subsvars(
+    $text, $info->function_packages,
     [ $self->auto_vars($name, $info), $info->vars, \%ENV ],
     $info->fsmap,
-  ), @{ $self->recipe };
-  wantarray ? @cmd : \@cmd;
+  );
 }
 
 sub new {
@@ -94,7 +98,8 @@ Make::Rule - a rule with prerequisites and recipe
     my @name_commands = $rule->Make($target, $make);
     my @deps = @{ $rule->prereqs };
     my @cmds = @{ $rule->recipe };
-    my @expanded_cmds = @{ $rule->exp_recipe($name, $make) }; # vars expanded
+    my @expanded_cmds = $rule->exp_recipe($name, $make); # vars expanded
+    my @expanded_cmds = $rule->expand($text, $name, $make); # vars expanded
     my @raw_cmds = @{ $rule->recipe_raw }; # with any \ still on line-ends
     my $vars = $rule->auto_vars($name, $make); # tied hash-ref
 
